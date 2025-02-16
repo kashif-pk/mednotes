@@ -45,10 +45,10 @@ const Auth = () => {
           navigate("/");
         }
       } else {
-        console.log("Attempting signin...");
+        console.log("Attempting signin with:", { email, password });
         const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
+          email: email.trim(),
+          password: password.trim(),
         });
         console.log("Signin response:", { data, error });
 
@@ -62,7 +62,7 @@ const Auth = () => {
           } else {
             throw error;
           }
-        } else {
+        } else if (data.user) {
           toast({
             title: "Welcome back!",
             description: "You have successfully signed in.",
