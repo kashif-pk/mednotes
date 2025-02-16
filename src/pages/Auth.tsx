@@ -36,9 +36,10 @@ const Auth = () => {
           }
         } else {
           toast({
-            title: "Success!",
-            description: "Please check your email to verify your account.",
+            title: "Welcome!",
+            description: "Your account has been created successfully.",
           });
+          navigate("/");
         }
       } else {
         const { error } = await supabase.auth.signInWithPassword({
