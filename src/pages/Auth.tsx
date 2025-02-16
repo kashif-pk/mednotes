@@ -19,10 +19,13 @@ const Auth = () => {
     setLoading(true);
     try {
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
+        console.log("Attempting signup...");
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
         });
+        console.log("Signup response:", { data, error });
+        
         if (error) {
           if (error.message === "User already registered") {
             toast({
@@ -42,25 +45,33 @@ const Auth = () => {
           navigate("/");
         }
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
+        console.log("Attempting signin...");
+        const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
+        console.log("Signin response:", { data, error });
+
         if (error) {
           if (error.message === "Invalid login credentials") {
             toast({
               title: "Invalid credentials",
-              description: "Please check your email and password and try again.",
+              description: "Please check your email and password and try again. If you haven't registered yet, please sign up first.",
               variant: "destructive",
             });
           } else {
             throw error;
           }
         } else {
+          toast({
+            title: "Welcome back!",
+            description: "You have successfully signed in.",
+          });
           navigate("/");
         }
       }
     } catch (error: any) {
+      console.error("Auth error:", error);
       toast({
         title: "Error",
         description: error.message,
@@ -99,6 +110,7 @@ const Auth = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              minLength={6}
             />
           </div>
           <Button
