@@ -46,8 +46,19 @@ const Auth = () => {
           email,
           password,
         });
-        if (error) throw error;
-        navigate("/");
+        if (error) {
+          if (error.message === "Invalid login credentials") {
+            toast({
+              title: "Invalid credentials",
+              description: "Please check your email and password and try again.",
+              variant: "destructive",
+            });
+          } else {
+            throw error;
+          }
+        } else {
+          navigate("/");
+        }
       }
     } catch (error: any) {
       toast({
