@@ -9,6 +9,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
@@ -45,6 +46,14 @@ export const NotesUpload = () => {
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
+      if (selectedFile.size > 50 * 1024 * 1024) { // 50MB limit 
+        toast({
+          title: "File too large",
+          description: "Please select a file smaller than 50MB",
+          variant: "destructive",
+        });
+        return;
+      }
       setFile(selectedFile);
     }
   };
@@ -75,7 +84,10 @@ export const NotesUpload = () => {
         .from("notes")
         .upload(fileName, file);
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error("Upload error:", uploadError);
+        throw new Error("Failed to upload file. Please try again.");
+      }
 
       // Get the public URL
       const { data: { publicUrl } } = supabase.storage
@@ -91,7 +103,10 @@ export const NotesUpload = () => {
         user_id: user.id,
       });
 
-      if (dbError) throw dbError;
+      if (dbError) {
+        console.error("Database error:", dbError);
+        throw new Error("Failed to save note information. Please try again.");
+      }
 
       toast({
         title: "Success!",
@@ -100,9 +115,10 @@ export const NotesUpload = () => {
       setOpen(false);
       resetForm();
     } catch (error: any) {
+      console.error("Error in handleSubmit:", error);
       toast({
         title: "Error uploading notes",
-        description: error.message,
+        description: error.message || "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -125,6 +141,9 @@ export const NotesUpload = () => {
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Upload Your Notes</DialogTitle>
+          <DialogDescription>
+            Share your study materials with the community. Supported formats: PDF, DOC, DOCX.
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
