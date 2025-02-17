@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { User } from "@supabase/supabase-js";
+import { ArrowLeft, Camera, Mail, User as UserIcon } from "lucide-react";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -89,55 +90,95 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-black pt-20 px-4">
-      <div className="container max-w-2xl mx-auto py-8">
-        <Card className="bg-card/50 backdrop-blur-sm border-border/50">
-          <CardHeader>
-            <CardTitle>Profile Settings</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex items-center space-x-4">
-              <Avatar className="w-20 h-20">
-                <AvatarImage src={profile.avatar_url || ""} />
-                <AvatarFallback>{profile.full_name?.[0] || user?.email?.[0]}</AvatarFallback>
-              </Avatar>
-              <div className="space-y-1">
-                <h4 className="text-sm font-medium">Profile Picture</h4>
+      <div className="container max-w-4xl mx-auto py-8">
+        <Button
+          variant="ghost"
+          onClick={() => navigate("/")}
+          className="mb-6 hover:bg-white/10"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Home
+        </Button>
+
+        <div className="grid gap-8 md:grid-cols-[300px_1fr]">
+          {/* Profile Summary Card */}
+          <Card className="h-fit bg-card/50 backdrop-blur-sm border-border/50">
+            <CardContent className="p-6 text-center">
+              <div className="relative mx-auto w-32 h-32 mb-6 group">
+                <Avatar className="w-32 h-32 border-4 border-primary/20">
+                  <AvatarImage src={profile.avatar_url || ""} />
+                  <AvatarFallback className="text-4xl">
+                    {profile.full_name?.[0] || user?.email?.[0]}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="absolute inset-0 rounded-full bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <Camera className="w-8 h-8 text-white/80" />
+                </div>
+              </div>
+              <h3 className="text-xl font-semibold mb-2">
+                {profile.full_name || "Set your name"}
+              </h3>
+              <p className="text-muted-foreground text-sm flex items-center justify-center gap-2">
+                <Mail className="w-4 h-4" />
+                {user?.email}
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Profile Edit Card */}
+          <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+            <CardHeader>
+              <CardTitle>Edit Profile</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-sm font-medium flex items-center gap-2">
+                  <UserIcon className="w-4 h-4" />
+                  Full Name
+                </label>
                 <Input
-                  type="text"
-                  placeholder="Avatar URL"
-                  value={profile.avatar_url || ""}
-                  onChange={(e) => setProfile({ ...profile, avatar_url: e.target.value })}
+                  value={profile.full_name || ""}
+                  onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
+                  placeholder="Enter your full name"
+                  className="bg-background/50"
                 />
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Full Name</label>
-              <Input
-                value={profile.full_name || ""}
-                onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
-                placeholder="Enter your full name"
-              />
-            </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium flex items-center gap-2">
+                  <Camera className="w-4 h-4" />
+                  Profile Picture URL
+                </label>
+                <Input
+                  value={profile.avatar_url || ""}
+                  onChange={(e) => setProfile({ ...profile, avatar_url: e.target.value })}
+                  placeholder="Enter image URL"
+                  className="bg-background/50"
+                />
+              </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Email</label>
-              <Input
-                value={user?.email || ""}
-                disabled
-                className="bg-muted"
-              />
-            </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium flex items-center gap-2">
+                  <Mail className="w-4 h-4" />
+                  Email
+                </label>
+                <Input
+                  value={user?.email || ""}
+                  disabled
+                  className="bg-background/50 text-muted-foreground"
+                />
+              </div>
 
-            <Button 
-              onClick={updateProfile} 
-              disabled={loading}
-              className="w-full"
-            >
-              {loading ? "Saving..." : "Save Changes"}
-            </Button>
-          </CardContent>
-        </Card>
+              <Button 
+                onClick={updateProfile} 
+                disabled={loading}
+                className="w-full bg-primary/90 hover:bg-primary"
+              >
+                {loading ? "Saving..." : "Save Changes"}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
