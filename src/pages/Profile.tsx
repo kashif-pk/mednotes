@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { User } from "@supabase/supabase-js";
-import { ArrowLeft, Camera, Mail, User as UserIcon } from "lucide-react";
+import { ArrowLeft, Camera, Mail, User as UserIcon, Download } from "lucide-react";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -19,6 +18,7 @@ const Profile = () => {
     full_name?: string;
     avatar_url?: string;
   }>({});
+  const [userNotes, setUserNotes] = useState<any[]>([]);
 
   useEffect(() => {
     const getUser = async () => {
@@ -29,7 +29,6 @@ const Profile = () => {
       }
       setUser(user);
       
-      // Fetch profile data
       const { data: profile, error } = await supabase
         .from('profiles')
         .select('*')
@@ -50,7 +49,24 @@ const Profile = () => {
       setLoading(false);
     };
 
+    const fetchUserNotes = async () => {
+      if (!user) return;
+      
+      const { data, error } = await supabase
+        .from("notes")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching user notes:", error);
+      } else {
+        setUserNotes(data || []);
+      }
+    };
+
     getUser();
+    fetchUserNotes();
   }, [navigate, toast]);
 
   const updateProfile = async () => {
@@ -101,7 +117,6 @@ const Profile = () => {
         </Button>
 
         <div className="grid gap-8 md:grid-cols-[300px_1fr]">
-          {/* Profile Summary Card */}
           <Card className="h-fit bg-card/50 backdrop-blur-sm border-border/50">
             <CardContent className="p-6 text-center">
               <div className="relative mx-auto w-32 h-32 mb-6 group">
@@ -125,7 +140,6 @@ const Profile = () => {
             </CardContent>
           </Card>
 
-          {/* Profile Edit Card */}
           <Card className="bg-card/50 backdrop-blur-sm border-border/50">
             <CardHeader>
               <CardTitle>Edit Profile</CardTitle>
@@ -178,6 +192,40 @@ const Profile = () => {
               </Button>
             </CardContent>
           </Card>
+        </div>
+
+        <div className="mt-8">
+          <h2 className="text-2xl font-bold mb-4">Your Notes</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {userNotes.map((note) => (
+              <Card key={note.id} className="bg-card/50 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle className="flex items-start justify-between gap-2">
+                    <span className="line-clamp-2">{note.title}</span>
+                    <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary">
+                      {note.category}
+                    </span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    {note.description}
+                  </p>
+                  <Button variant="outline" size="sm" asChild className="w-full">
+                    <a href={note.file_url} target="_blank" rel="noopener noreferrer">
+                      <Download className="w-4 h-4 mr-2" />
+                      Download
+                    </a>
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+            {userNotes.length === 0 && (
+              <p className="text-muted-foreground col-span-2 text-center py-8">
+                You haven't uploaded any notes yet.
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </div>
