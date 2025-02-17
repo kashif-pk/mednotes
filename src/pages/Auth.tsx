@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
+import { X } from "lucide-react";
 
 const Auth = () => {
   const [loading, setLoading] = useState(false);
@@ -83,15 +84,23 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-black flex items-center justify-center px-4">
-      <div className="max-w-md w-full space-y-8 glass p-8 rounded-lg">
+    <div className="min-h-screen bg-black/60 backdrop-blur-sm flex items-center justify-center px-4 fixed inset-0 z-50">
+      <div className="max-w-md w-full space-y-8 glass p-8 rounded-lg relative">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute right-4 top-4"
+          onClick={() => navigate("/")}
+        >
+          <X className="h-4 w-4" />
+        </Button>
         <div className="text-center">
           <h2 className="text-3xl font-bold">
             {isSignUp ? "Create an account" : "Welcome back"}
           </h2>
           <p className="mt-2 text-muted-foreground">
             {isSignUp
-              ? "Sign up to start sharing your nursing knowledge"
+              ? "Sign up to start sharing your medical knowledge"
               : "Sign in to your account"}
           </p>
         </div>
