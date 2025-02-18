@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, Download, User } from "lucide-react";
+import { Download, Eye, User } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
 type Note = {
@@ -53,6 +53,25 @@ export const FeaturedNotes = () => {
     fetchNotes();
   }, [toast]);
 
+  const handleNoteAction = (note: Note, action: 'view' | 'download') => {
+    const a = document.createElement('a');
+    a.href = note.file_url;
+    
+    if (action === 'download') {
+      // Force download by setting download attribute with filename
+      a.setAttribute('download', `${note.title}.pdf`);
+    } else {
+      // Open in new tab for viewing
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+    }
+    
+    // Trigger click and remove element
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
   if (loading) {
     return (
       <div className="container py-12">
@@ -85,17 +104,31 @@ export const FeaturedNotes = () => {
               <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
                 {note.description}
               </p>
-              <div className="flex items-center justify-between">
+              <div className="space-y-4">
                 <div className="flex items-center text-sm text-muted-foreground">
                   <User className="w-4 h-4 mr-1" />
                   <span>{note.profiles.full_name || "Anonymous"}</span>
                 </div>
-                <Button variant="outline" size="sm" asChild>
-                  <a href={note.file_url} target="_blank" rel="noopener noreferrer">
-                    <Download className="w-4 h-4 mr-1" />
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1"
+                    onClick={() => handleNoteAction(note, 'view')}
+                  >
+                    <Eye className="w-4 h-4 mr-2" />
+                    View
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1"
+                    onClick={() => handleNoteAction(note, 'download')}
+                  >
+                    <Download className="w-4 h-4 mr-2" />
                     Download
-                  </a>
-                </Button>
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
