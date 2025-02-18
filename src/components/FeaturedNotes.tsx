@@ -53,23 +53,35 @@ export const FeaturedNotes = () => {
     fetchNotes();
   }, [toast]);
 
-  const handleNoteAction = (note: Note, action: 'view' | 'download') => {
-    const a = document.createElement('a');
-    a.href = note.file_url;
-    
-    if (action === 'download') {
-      // Force download by setting download attribute with filename
-      a.setAttribute('download', `${note.title}.pdf`);
-    } else {
-      // Open in new tab for viewing
-      a.target = '_blank';
-      a.rel = 'noopener noreferrer';
+  const handleNoteAction = async (note: Note, action: 'view' | 'download') => {
+    try {
+      if (action === 'download') {
+        // Fetch the file as a blob
+        const response = await fetch(note.file_url);
+        const blob = await response.blob();
+        
+        // Create a blob URL and trigger download
+        const blobUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = `${note.title}.pdf`; // Set the filename
+        document.body.appendChild(a);
+        a.click();
+        
+        // Cleanup
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(blobUrl);
+      } else {
+        // For viewing, just open in a new tab
+        window.open(note.file_url, '_blank', 'noopener,noreferrer');
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to process the file",
+        variant: "destructive",
+      });
     }
-    
-    // Trigger click and remove element
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
   };
 
   if (loading) {
