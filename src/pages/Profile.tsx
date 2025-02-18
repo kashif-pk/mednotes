@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,7 +7,16 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { User } from "@supabase/supabase-js";
-import { ArrowLeft, Camera, Mail, User as UserIcon, Download, Loader2 } from "lucide-react";
+import { 
+  ArrowLeft, 
+  Camera, 
+  Mail, 
+  User as UserIcon, 
+  Download, 
+  Loader2, 
+  Trash2, 
+  Eye 
+} from "lucide-react";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -21,6 +29,7 @@ const Profile = () => {
     avatar_url?: string;
   }>({});
   const [userNotes, setUserNotes] = useState<any[]>([]);
+  const [deletingNoteId, setDeletingNoteId] = useState<string | null>(null);
 
   useEffect(() => {
     getUser();
@@ -118,6 +127,43 @@ const Profile = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const deleteNote = async (noteId: string) => {
+    try {
+      setDeletingNoteId(noteId);
+      const { error } = await supabase
+        .from("notes")
+        .delete()
+        .eq("id", noteId);
+
+      if (error) throw error;
+
+      setUserNotes(userNotes.filter(note => note.id !== noteId));
+      toast({
+        title: "Note deleted",
+        description: "Your note has been deleted successfully.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error deleting note",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingNoteId(null);
+    }
+  };
+
+  const handleNoteAction = (note: any, action: 'view' | 'download') => {
+    const a = document.createElement('a');
+    a.href = note.file_url;
+    if (action === 'download') {
+      a.download = `${note.title}.pdf`; // Forces download
+    } else {
+      a.target = '_blank'; // Opens in new tab for viewing
+    }
+    a.click();
   };
 
   if (loading) {
@@ -245,12 +291,38 @@ const Profile = () => {
                     <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
                       {note.description}
                     </p>
-                    <Button variant="outline" size="sm" asChild className="w-full">
-                      <a href={note.file_url} target="_blank" rel="noopener noreferrer">
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex-1"
+                        onClick={() => handleNoteAction(note, 'view')}
+                      >
+                        <Eye className="w-4 h-4 mr-2" />
+                        View
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex-1"
+                        onClick={() => handleNoteAction(note, 'download')}
+                      >
                         <Download className="w-4 h-4 mr-2" />
                         Download
-                      </a>
-                    </Button>
+                      </Button>
+                      <Button 
+                        variant="destructive" 
+                        size="sm"
+                        onClick={() => deleteNote(note.id)}
+                        disabled={deletingNoteId === note.id}
+                      >
+                        {deletingNoteId === note.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="w-4 h-4" />
+                        )}
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               ))}
