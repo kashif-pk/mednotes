@@ -54,6 +54,7 @@ export const NotesUpload = () => {
         });
         return;
       }
+      console.log("Selected file:", selectedFile.name, selectedFile.type);
       setFile(selectedFile);
     }
   };
@@ -74,6 +75,7 @@ export const NotesUpload = () => {
       // Get current user
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       if (userError) {
+        console.error("Auth error:", userError);
         throw new Error("Authentication error. Please sign in again.");
       }
       
@@ -86,42 +88,56 @@ export const NotesUpload = () => {
       const fileExt = file.name.split(".").pop();
       const fileName = `${crypto.randomUUID()}.${fileExt}`;
       
+      console.log("Uploading file:", {
+        fileName,
+        fileType: file.type,
+        fileSize: file.size
+      });
+
       // Upload file
-      const { error: uploadError } = await supabase.storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from("notes")
         .upload(fileName, file, {
           cacheControl: "3600",
-          contentType: file.type, // Add content type
+          contentType: file.type,
+          upsert: false
         });
 
       if (uploadError) {
         console.error("Upload error:", uploadError);
-        throw new Error("Failed to upload file. Please try again.");
+        throw new Error(`Failed to upload file: ${uploadError.message}`);
       }
+
+      console.log("Upload successful:", uploadData);
 
       // Get the public URL
       const { data: { publicUrl } } = supabase.storage
         .from("notes")
         .getPublicUrl(fileName);
 
+      console.log("Public URL generated:", publicUrl);
+
       // Save note metadata with explicit typing
-      const { error: dbError } = await supabase
+      const { data: noteData, error: dbError } = await supabase
         .from("notes")
-        .insert([{  // Use array for insert
+        .insert([{
           title,
           description,
           category,
           file_url: publicUrl,
           user_id: user.id,
           created_at: new Date().toISOString(),
-        }]);
+        }])
+        .select();
 
       if (dbError) {
         console.error("Database error:", dbError);
         // Try to delete the uploaded file if database insert fails
         await supabase.storage.from("notes").remove([fileName]);
-        throw new Error("Failed to save note information. Please try again.");
+        throw new Error(`Failed to save note information: ${dbError.message}`);
       }
+
+      console.log("Note metadata saved:", noteData);
 
       toast({
         title: "Success!",
