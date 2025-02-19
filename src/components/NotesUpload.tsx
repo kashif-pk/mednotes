@@ -72,7 +72,11 @@ export const NotesUpload = () => {
     setLoading(true);
     try {
       // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError) {
+        throw new Error("Authentication error. Please sign in again.");
+      }
+      
       if (!user) {
         navigate("/auth");
         return;
@@ -81,14 +85,17 @@ export const NotesUpload = () => {
       // Upload file to storage with optimized settings
       const fileExt = file.name.split(".").pop();
       const fileName = `${crypto.randomUUID()}.${fileExt}`;
+      
+      // Upload file
       const { error: uploadError } = await supabase.storage
         .from("notes")
         .upload(fileName, file, {
           cacheControl: "3600",
-          upsert: false,
+          contentType: file.type, // Add content type
         });
 
       if (uploadError) {
+        console.error("Upload error:", uploadError);
         throw new Error("Failed to upload file. Please try again.");
       }
 
@@ -97,18 +104,22 @@ export const NotesUpload = () => {
         .from("notes")
         .getPublicUrl(fileName);
 
-      // Save note metadata
+      // Save note metadata with explicit typing
       const { error: dbError } = await supabase
         .from("notes")
-        .insert({
+        .insert([{  // Use array for insert
           title,
           description,
           category,
           file_url: publicUrl,
           user_id: user.id,
-        });
+          created_at: new Date().toISOString(),
+        }]);
 
       if (dbError) {
+        console.error("Database error:", dbError);
+        // Try to delete the uploaded file if database insert fails
+        await supabase.storage.from("notes").remove([fileName]);
         throw new Error("Failed to save note information. Please try again.");
       }
 
