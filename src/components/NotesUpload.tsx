@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -46,7 +46,7 @@ export const NotesUpload = () => {
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
-      if (selectedFile.size > 50 * 1024 * 1024) { // 50MB limit 
+      if (selectedFile.size > 50 * 1024 * 1024) {
         toast({
           title: "File too large",
           description: "Please select a file smaller than 50MB",
@@ -71,33 +71,24 @@ export const NotesUpload = () => {
 
     setLoading(true);
     try {
+      // Get current user
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         navigate("/auth");
         return;
       }
 
-      // Get user's profile first
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-
-      if (profileError) {
-        console.error("Profile error:", profileError);
-        throw new Error("Failed to fetch user profile");
-      }
-
-      // Upload file to storage
+      // Upload file to storage with optimized settings
       const fileExt = file.name.split(".").pop();
       const fileName = `${crypto.randomUUID()}.${fileExt}`;
-      const { error: uploadError, data } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from("notes")
-        .upload(fileName, file);
+        .upload(fileName, file, {
+          cacheControl: "3600",
+          upsert: false,
+        });
 
       if (uploadError) {
-        console.error("Upload error:", uploadError);
         throw new Error("Failed to upload file. Please try again.");
       }
 
@@ -106,17 +97,18 @@ export const NotesUpload = () => {
         .from("notes")
         .getPublicUrl(fileName);
 
-      // Save note metadata to database with user profile information
-      const { error: dbError } = await supabase.from("notes").insert({
-        title,
-        description,
-        category,
-        file_url: publicUrl,
-        user_id: user.id,
-      });
+      // Save note metadata
+      const { error: dbError } = await supabase
+        .from("notes")
+        .insert({
+          title,
+          description,
+          category,
+          file_url: publicUrl,
+          user_id: user.id,
+        });
 
       if (dbError) {
-        console.error("Database error:", dbError);
         throw new Error("Failed to save note information. Please try again.");
       }
 
