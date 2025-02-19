@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -77,6 +77,18 @@ export const NotesUpload = () => {
         return;
       }
 
+      // Get user's profile first
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (profileError) {
+        console.error("Profile error:", profileError);
+        throw new Error("Failed to fetch user profile");
+      }
+
       // Upload file to storage
       const fileExt = file.name.split(".").pop();
       const fileName = `${crypto.randomUUID()}.${fileExt}`;
@@ -94,7 +106,7 @@ export const NotesUpload = () => {
         .from("notes")
         .getPublicUrl(fileName);
 
-      // Save note metadata to database
+      // Save note metadata to database with user profile information
       const { error: dbError } = await supabase.from("notes").insert({
         title,
         description,
