@@ -2,11 +2,11 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { Header } from "@/components/Header";
-import { Index } from "@/pages/Index";
-import { Auth } from "@/pages/Auth";
-import { Profile } from "@/pages/Profile";
+import Index from "@/pages/Index";
+import Auth from "@/pages/Auth";
+import Profile from "@/pages/Profile";
 import Notes from "@/pages/Notes";
-import { NotFound } from "@/pages/NotFound";
+import NotFound from "@/pages/NotFound";
 import "./App.css";
 
 function App() {
