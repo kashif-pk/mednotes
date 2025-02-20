@@ -5,6 +5,7 @@ import { Features } from "@/components/Features";
 import { HowItWorks } from "@/components/HowItWorks";
 import { Testimonials } from "@/components/Testimonials";
 import { FeaturedNotes } from "@/components/FeaturedNotes";
+import { Contact } from "@/components/Contact";
 import { NotesUpload } from "@/components/NotesUpload";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -43,6 +44,7 @@ const Index = () => {
         <FeaturedNotes />
         <HowItWorks />
         <Testimonials />
+        <Contact />
       </main>
     </div>
   );
