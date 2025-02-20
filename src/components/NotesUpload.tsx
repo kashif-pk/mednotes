@@ -84,40 +84,37 @@ export const NotesUpload = () => {
         return;
       }
 
-      // Upload file to storage with optimized settings
+      // Create a simple test upload first
       const fileExt = file.name.split(".").pop();
       const fileName = `${crypto.randomUUID()}.${fileExt}`;
       
-      console.log("Uploading file:", {
+      console.log("Attempting simple file upload:", {
         fileName,
         fileType: file.type,
-        fileSize: file.size
+        fileSize: file.size,
+        bucket: "notes"
       });
 
-      // Upload file
+      // Try a direct upload first
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from("notes")
-        .upload(fileName, file, {
-          cacheControl: "3600",
-          contentType: file.type,
-          upsert: false
-        });
+        .upload(fileName, file);
 
       if (uploadError) {
-        console.error("Upload error:", uploadError);
-        throw new Error(`Failed to upload file: ${uploadError.message}`);
+        console.error("Upload error details:", uploadError);
+        throw new Error(`Upload failed: ${uploadError.message}`);
       }
 
-      console.log("Upload successful:", uploadData);
+      console.log("Upload succeeded:", uploadData);
 
-      // Get the public URL
+      // If upload succeeds, get the URL
       const { data: { publicUrl } } = supabase.storage
         .from("notes")
         .getPublicUrl(fileName);
 
-      console.log("Public URL generated:", publicUrl);
+      console.log("Got public URL:", publicUrl);
 
-      // Save note metadata with explicit typing
+      // Save metadata
       const { data: noteData, error: dbError } = await supabase
         .from("notes")
         .insert([{
@@ -132,12 +129,11 @@ export const NotesUpload = () => {
 
       if (dbError) {
         console.error("Database error:", dbError);
-        // Try to delete the uploaded file if database insert fails
         await supabase.storage.from("notes").remove([fileName]);
-        throw new Error(`Failed to save note information: ${dbError.message}`);
+        throw new Error(`Database error: ${dbError.message}`);
       }
 
-      console.log("Note metadata saved:", noteData);
+      console.log("Note saved successfully:", noteData);
 
       toast({
         title: "Success!",
@@ -146,10 +142,10 @@ export const NotesUpload = () => {
       setOpen(false);
       resetForm();
     } catch (error: any) {
-      console.error("Error in handleSubmit:", error);
+      console.error("Upload failed:", error);
       toast({
-        title: "Error uploading notes",
-        description: error.message || "An unexpected error occurred. Please try again.",
+        title: "Upload failed",
+        description: error.message || "Failed to upload file. Please try again.",
         variant: "destructive",
       });
     } finally {
