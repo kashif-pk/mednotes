@@ -67,7 +67,7 @@ const Notes = () => {
         .from("notes")
         .select(`
           *,
-          profiles (
+          profiles!notes_user_id_fkey (
             full_name
           )
         `, { count: 'exact' })
@@ -81,11 +81,13 @@ const Notes = () => {
       const { data, error, count } = await query;
 
       if (error) throw error;
+      console.log("Fetched notes with profiles:", data); // For debugging
       setNotes(data as Note[]);
       if (count) {
         setTotalPages(Math.ceil(count / ITEMS_PER_PAGE));
       }
     } catch (error: any) {
+      console.error("Error fetching notes:", error); // For debugging
       toast({
         title: "Error fetching notes",
         description: error.message,

@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,12 +27,11 @@ export const FeaturedNotes = () => {
   useEffect(() => {
     const fetchNotes = async () => {
       try {
-        // First, get all notes ordered by creation date
         const { data, error } = await supabase
           .from("notes")
           .select(`
             *,
-            profiles (
+            profiles!notes_user_id_fkey (
               full_name
             )
           `)
