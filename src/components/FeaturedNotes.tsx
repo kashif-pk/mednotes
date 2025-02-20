@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Download, Eye, User } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { useNavigate } from "react-router-dom";
 
 type Note = {
   id: string;
@@ -22,10 +23,12 @@ export const FeaturedNotes = () => {
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchNotes = async () => {
       try {
+        // First, get all notes ordered by creation date
         const { data, error } = await supabase
           .from("notes")
           .select(`
@@ -34,11 +37,21 @@ export const FeaturedNotes = () => {
               full_name
             )
           `)
-          .order("created_at", { ascending: false })
-          .limit(6);
+          .order("created_at", { ascending: false });
 
         if (error) throw error;
-        setNotes(data as Note[]);
+
+        // Filter to get only the latest note from each category
+        const latestByCategory = (data as Note[]).reduce((acc: Note[], current) => {
+          const categoryExists = acc.find(note => note.category === current.category);
+          if (!categoryExists) {
+            acc.push(current);
+          }
+          return acc;
+        }, []);
+
+        // Take only the first 6 categories
+        setNotes(latestByCategory.slice(0, 6));
       } catch (error: any) {
         toast({
           title: "Error fetching notes",
@@ -56,23 +69,17 @@ export const FeaturedNotes = () => {
   const handleNoteAction = async (note: Note, action: 'view' | 'download') => {
     try {
       if (action === 'download') {
-        // Fetch the file as a blob
         const response = await fetch(note.file_url);
         const blob = await response.blob();
-        
-        // Create a blob URL and trigger download
         const blobUrl = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = blobUrl;
-        a.download = `${note.title}.pdf`; // Set the filename
+        a.download = `${note.title}.pdf`;
         document.body.appendChild(a);
         a.click();
-        
-        // Cleanup
         document.body.removeChild(a);
         window.URL.revokeObjectURL(blobUrl);
       } else {
-        // For viewing, just open in a new tab
         window.open(note.file_url, '_blank', 'noopener,noreferrer');
       }
     } catch (error) {
@@ -145,6 +152,16 @@ export const FeaturedNotes = () => {
             </CardContent>
           </Card>
         ))}
+      </div>
+
+      <div className="mt-8 text-center">
+        <Button 
+          size="lg" 
+          onClick={() => navigate("/notes")}
+          className="bg-primary hover:bg-primary/90"
+        >
+          Browse All Notes
+        </Button>
       </div>
     </section>
   );
