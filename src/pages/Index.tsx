@@ -73,6 +73,13 @@ const Index = () => {
           </div>
         </section>
       </main>
+      <footer className="py-6 bg-black/80">
+        <div className="container text-center">
+          <p className="text-sm text-gray-400">
+            © {new Date().getFullYear()} StudyNotes. All rights reserved.
+          </p>
+        </div>
+      </footer>
     </div>
   );
 };
