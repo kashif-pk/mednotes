@@ -76,7 +76,7 @@ const Index = () => {
       <footer className="py-6 bg-black/80">
         <div className="container text-center">
           <p className="text-sm text-gray-400">
-            © {new Date().getFullYear()} StudyNotes. All rights reserved.
+            © {new Date().getFullYear()} MedNotes. All rights reserved.
           </p>
         </div>
       </footer>
