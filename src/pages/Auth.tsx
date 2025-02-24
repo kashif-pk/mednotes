@@ -1,19 +1,32 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import { X } from "lucide-react";
+import { X, Loader2 } from "lucide-react";
 
 const Auth = () => {
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Check if user is already signed in
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        navigate("/");
+      }
+      setLoading(false);
+    };
+    
+    checkUser();
+  }, [navigate]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,6 +96,17 @@ const Auth = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black/60 backdrop-blur-sm flex items-center justify-center px-4 fixed inset-0 z-50">
+        <div className="flex items-center gap-2">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          <span>Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-black/60 backdrop-blur-sm flex items-center justify-center px-4 fixed inset-0 z-50">
       <div className="max-w-md w-full space-y-8 glass p-8 rounded-lg relative">
@@ -127,11 +151,14 @@ const Auth = () => {
             className="w-full"
             disabled={loading}
           >
-            {loading
-              ? "Loading..."
-              : isSignUp
-              ? "Sign Up"
-              : "Sign In"}
+            {loading ? (
+              <div className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Loading...
+              </div>
+            ) : (
+              isSignUp ? "Sign Up" : "Sign In"
+            )}
           </Button>
         </form>
         <div className="text-center mt-4">
