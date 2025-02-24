@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,47 +33,47 @@ const Profile = () => {
   const [deletingNoteId, setDeletingNoteId] = useState<string | null>(null);
 
   useEffect(() => {
-    getUser();
-  }, [navigate, toast]);
-
-  const getUser = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        navigate("/auth");
-        return;
-      }
-      setUser(user);
-      
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
+    const initializeProfile = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.user) {
+          navigate("/auth");
+          return;
+        }
+        setUser(session.user);
         
-      if (error) {
-        console.error('Error fetching profile:', error);
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+          
+        if (profileError) {
+          console.error('Error fetching profile:', profileError);
+          toast({
+            title: "Error fetching profile",
+            description: profileError.message,
+            variant: "destructive",
+          });
+        } else if (profileData) {
+          setProfile(profileData);
+        }
+        
+        await fetchUserNotes(session.user.id);
+      } catch (error: any) {
+        console.error('Error in initializeProfile:', error);
         toast({
-          title: "Error fetching profile",
+          title: "Error loading profile",
           description: error.message,
           variant: "destructive",
         });
-      } else if (profile) {
-        setProfile(profile);
+      } finally {
+        setLoading(false);
       }
-      
-      setLoading(false);
-      fetchUserNotes(user.id);
-    } catch (error: any) {
-      console.error('Error in getUser:', error);
-      toast({
-        title: "Error loading profile",
-        description: error.message,
-        variant: "destructive",
-      });
-      setLoading(false);
-    }
-  };
+    };
+
+    initializeProfile();
+  }, [navigate, toast]);
 
   const fetchUserNotes = async (userId: string) => {
     try {
@@ -83,9 +84,7 @@ const Profile = () => {
         .eq("user_id", userId)
         .order("created_at", { ascending: false });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
       setUserNotes(data || []);
     } catch (error: any) {
       console.error("Error fetching user notes:", error);
@@ -183,7 +182,10 @@ const Profile = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-background to-black flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
+        <div className="flex items-center gap-2">
+          <Loader2 className="h-8 w-8 animate-spin" />
+          <span>Loading profile...</span>
+        </div>
       </div>
     );
   }
