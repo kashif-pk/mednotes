@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -69,18 +70,18 @@ export const FeaturedNotes = () => {
       if (action === 'download') {
         const response = await fetch(note.file_url);
         const blob = await response.blob();
-        const blobUrl = window.URL.createObjectURL(blob);
+        const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = blobUrl;
+        a.href = url;
         a.download = `${note.title}.pdf`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
-        window.URL.revokeObjectURL(blobUrl);
+        window.URL.revokeObjectURL(url);
       } else {
         window.open(note.file_url, '_blank', 'noopener,noreferrer');
       }
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
         description: "Failed to process the file",

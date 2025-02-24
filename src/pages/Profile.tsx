@@ -155,15 +155,29 @@ const Profile = () => {
     }
   };
 
-  const handleNoteAction = (note: any, action: 'view' | 'download') => {
-    const a = document.createElement('a');
-    a.href = note.file_url;
-    if (action === 'download') {
-      a.download = `${note.title}.pdf`; // Forces download
-    } else {
-      a.target = '_blank'; // Opens in new tab for viewing
+  const handleNoteAction = async (note: any, action: 'view' | 'download') => {
+    try {
+      if (action === 'download') {
+        const response = await fetch(note.file_url);
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${note.title}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      } else {
+        window.open(note.file_url, '_blank', 'noopener,noreferrer');
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to process the file",
+        variant: "destructive",
+      });
     }
-    a.click();
   };
 
   if (loading) {
