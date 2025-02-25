@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import { FilePlus2, Facebook, Twitter, Linkedin, Instagram, Youtube } from "lucide-react";
+import { LampDemo } from "@/components/ui/lamp";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -29,6 +30,7 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-to-b from-background to-black">
       <Header />
       <main>
+        <LampDemo />
         <Hero />
         <Features />
         <div className="container py-8 flex justify-center">
