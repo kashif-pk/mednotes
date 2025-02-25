@@ -183,8 +183,8 @@ const Profile = () => {
     return (
       <div className="min-h-screen bg-gradient-to-b from-background to-black flex items-center justify-center">
         <div className="flex items-center gap-2">
-          <Loader2 className="h-8 w-8 animate-spin" />
-          <span>Loading profile...</span>
+          <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 animate-spin" />
+          <span className="text-sm sm:text-base">Loading profile...</span>
         </div>
       </div>
     );
@@ -192,35 +192,35 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-black pt-20 px-4">
-      <div className="container max-w-4xl mx-auto py-8">
+      <div className="container max-w-4xl mx-auto py-6 sm:py-8">
         <Button
           variant="ghost"
           onClick={() => navigate("/")}
-          className="mb-6 hover:bg-white/10"
+          className="mb-4 sm:mb-6 hover:bg-white/10 px-2 sm:px-4 h-8 sm:h-10 text-sm"
         >
-          <ArrowLeft className="mr-2 h-4 w-4" />
+          <ArrowLeft className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
           Back to Home
         </Button>
 
-        <div className="grid gap-8 md:grid-cols-[300px_1fr]">
+        <div className="grid gap-4 sm:gap-6 md:gap-8 md:grid-cols-[280px_1fr]">
           <Card className="h-fit bg-card/50 backdrop-blur-sm border-border/50">
-            <CardContent className="p-6 text-center">
-              <div className="relative mx-auto w-32 h-32 mb-6 group">
-                <Avatar className="w-32 h-32 border-4 border-primary/20">
+            <CardContent className="p-4 sm:p-6 text-center">
+              <div className="relative mx-auto w-24 h-24 sm:w-32 sm:h-32 mb-4 sm:mb-6 group">
+                <Avatar className="w-24 h-24 sm:w-32 sm:h-32 border-4 border-primary/20">
                   <AvatarImage src={profile.avatar_url || ""} />
-                  <AvatarFallback className="text-4xl">
+                  <AvatarFallback className="text-2xl sm:text-4xl">
                     {profile.full_name?.[0] || user?.email?.[0]}
                   </AvatarFallback>
                 </Avatar>
                 <div className="absolute inset-0 rounded-full bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <Camera className="w-8 h-8 text-white/80" />
+                  <Camera className="w-6 h-6 sm:w-8 sm:h-8 text-white/80" />
                 </div>
               </div>
-              <h3 className="text-xl font-semibold mb-2">
+              <h3 className="text-base sm:text-xl font-semibold mb-2">
                 {profile.full_name || "Set your name"}
               </h3>
-              <p className="text-muted-foreground text-sm flex items-center justify-center gap-2">
-                <Mail className="w-4 h-4" />
+              <p className="text-muted-foreground text-xs sm:text-sm flex items-center justify-center gap-1 sm:gap-2">
+                <Mail className="w-3 h-3 sm:w-4 sm:h-4" />
                 {user?.email}
               </p>
             </CardContent>
@@ -230,53 +230,53 @@ const Profile = () => {
             <CardHeader>
               <CardTitle>Edit Profile</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4 sm:space-y-6">
               <div className="space-y-2">
-                <label className="text-sm font-medium flex items-center gap-2">
-                  <UserIcon className="w-4 h-4" />
+                <label className="text-xs sm:text-sm font-medium flex items-center gap-1 sm:gap-2">
+                  <UserIcon className="w-3 h-3 sm:w-4 sm:h-4" />
                   Full Name
                 </label>
                 <Input
                   value={profile.full_name || ""}
                   onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
                   placeholder="Enter your full name"
-                  className="bg-background/50"
+                  className="bg-background/50 h-8 sm:h-10 text-sm"
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium flex items-center gap-2">
-                  <Camera className="w-4 h-4" />
+                <label className="text-xs sm:text-sm font-medium flex items-center gap-1 sm:gap-2">
+                  <Camera className="w-3 h-3 sm:w-4 sm:h-4" />
                   Profile Picture URL
                 </label>
                 <Input
                   value={profile.avatar_url || ""}
                   onChange={(e) => setProfile({ ...profile, avatar_url: e.target.value })}
                   placeholder="Enter image URL"
-                  className="bg-background/50"
+                  className="bg-background/50 h-8 sm:h-10 text-sm"
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium flex items-center gap-2">
-                  <Mail className="w-4 h-4" />
+                <label className="text-xs sm:text-sm font-medium flex items-center gap-1 sm:gap-2">
+                  <Mail className="w-3 h-3 sm:w-4 sm:h-4" />
                   Email
                 </label>
                 <Input
                   value={user?.email || ""}
                   disabled
-                  className="bg-background/50 text-muted-foreground"
+                  className="bg-background/50 text-muted-foreground h-8 sm:h-10 text-sm"
                 />
               </div>
 
               <Button 
                 onClick={updateProfile} 
                 disabled={loading}
-                className="w-full bg-primary/90 hover:bg-primary"
+                className="w-full h-8 sm:h-10 text-sm bg-primary/90 hover:bg-primary"
               >
                 {loading ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className="mr-2 h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
                     Saving...
                   </>
                 ) : "Save Changes"}
@@ -285,45 +285,45 @@ const Profile = () => {
           </Card>
         </div>
 
-        <div className="mt-8">
-          <h2 className="text-2xl font-bold mb-4">Your Notes</h2>
+        <div className="mt-6 sm:mt-8">
+          <h2 className="text-lg sm:text-2xl font-bold mb-4">Your Notes</h2>
           {notesLoading ? (
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin" />
+              <Loader2 className="h-4 w-4 sm:h-6 sm:w-6 animate-spin" />
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {userNotes.map((note) => (
                 <Card key={note.id} className="bg-card/50 backdrop-blur-sm hover:bg-card/60 transition-colors">
-                  <CardHeader>
-                    <CardTitle className="flex items-start justify-between gap-2">
+                  <CardHeader className="p-4 sm:p-6">
+                    <CardTitle className="flex items-start justify-between gap-2 text-base sm:text-lg">
                       <span className="line-clamp-2">{note.title}</span>
                       <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary whitespace-nowrap">
                         {note.category}
                       </span>
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                  <CardContent className="p-4 sm:p-6 pt-0">
+                    <p className="text-xs sm:text-sm text-muted-foreground mb-4 line-clamp-2">
                       {note.description}
                     </p>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col xs:flex-row gap-2">
                       <Button 
                         variant="outline" 
-                        size="sm" 
-                        className="flex-1"
+                        size="sm"
+                        className="flex-1 h-8 sm:h-9 text-xs sm:text-sm"
                         onClick={() => handleNoteAction(note, 'view')}
                       >
-                        <Eye className="w-4 h-4 mr-2" />
+                        <Eye className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5" />
                         View
                       </Button>
                       <Button 
                         variant="outline" 
-                        size="sm" 
-                        className="flex-1"
+                        size="sm"
+                        className="flex-1 h-8 sm:h-9 text-xs sm:text-sm"
                         onClick={() => handleNoteAction(note, 'download')}
                       >
-                        <Download className="w-4 h-4 mr-2" />
+                        <Download className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5" />
                         Download
                       </Button>
                       <Button 
@@ -331,11 +331,12 @@ const Profile = () => {
                         size="sm"
                         onClick={() => deleteNote(note.id)}
                         disabled={deletingNoteId === note.id}
+                        className="h-8 sm:h-9"
                       >
                         {deletingNoteId === note.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
                         ) : (
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
                         )}
                       </Button>
                     </div>
@@ -343,7 +344,7 @@ const Profile = () => {
                 </Card>
               ))}
               {userNotes.length === 0 && (
-                <p className="text-muted-foreground col-span-2 text-center py-8">
+                <p className="text-muted-foreground col-span-2 text-center py-8 text-sm sm:text-base">
                   You haven't uploaded any notes yet.
                 </p>
               )}
