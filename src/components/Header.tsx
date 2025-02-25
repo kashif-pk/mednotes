@@ -17,13 +17,20 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   {
-    title: "Browse Notes",
-    href: "/notes",
+    title: "Home",
+    href: "/",
   },
   {
-    title: "Upload Notes",
-    href: "/notes/upload",
-    isAuth: true,
+    title: "Features",
+    href: "/#features",
+  },
+  {
+    title: "About",
+    href: "/#about",
+  },
+  {
+    title: "Browse Notes",
+    href: "/notes",
   },
 ];
 
@@ -57,6 +64,13 @@ export const Header = () => {
     };
   }, [toast]);
 
+  const scrollToSection = (id: string) => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 border-b bg-background/80 backdrop-blur-sm">
       <div className="container flex h-16 items-center">
@@ -74,21 +88,23 @@ export const Header = () => {
           </Link>
         </div>
         <nav className="mx-6 flex items-center space-x-4 lg:space-x-6 hidden md:flex">
-          {navItems.map((item) => {
-            if (item.isAuth && !user) return null;
-            
-            return (
-              <Link
-                key={item.href}
-                to={item.href}
-                className={cn(
-                  "text-sm font-medium transition-colors hover:text-primary"
-                )}
-              >
-                {item.title}
-              </Link>
-            );
-          })}
+          {navItems.map((item) => (
+            <Link
+              key={item.href}
+              to={item.href}
+              onClick={(e) => {
+                if (item.href.startsWith('/#')) {
+                  e.preventDefault();
+                  scrollToSection(item.href.substring(2));
+                }
+              }}
+              className={cn(
+                "text-sm font-medium transition-colors hover:text-primary"
+              )}
+            >
+              {item.title}
+            </Link>
+          ))}
         </nav>
         <div className="ml-auto flex items-center space-x-4">
           {user ? (

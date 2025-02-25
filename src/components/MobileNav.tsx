@@ -21,13 +21,16 @@ const navItems: NavItem[] = [
     href: "/",
   },
   {
-    title: "Browse Notes",
-    href: "/notes",
+    title: "Features",
+    href: "/#features",
   },
   {
-    title: "Upload Notes",
-    href: "/notes/upload",
-    isAuth: true,
+    title: "About",
+    href: "/#about",
+  },
+  {
+    title: "Browse Notes",
+    href: "/notes",
   },
   {
     title: "Profile",
