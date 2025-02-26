@@ -8,7 +8,7 @@ export const Hero = () => {
   const navigate = useNavigate();
 
   return (
-    <LampContainer>
+    <LampContainer className="h-[100vh]">
       <motion.div
         initial={{ opacity: 0.5, y: 100 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -17,7 +17,7 @@ export const Hero = () => {
           duration: 0.8,
           ease: "easeInOut",
         }}
-        className="text-center space-y-8"
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full text-center space-y-8"
       >
         <h1 className="text-4xl md:text-7xl font-bold tracking-tight">
           <span className="inline-block bg-gradient-to-r from-purple-400 via-pink-500 to-purple-600 text-transparent bg-clip-text bg-300% animate-gradient">
