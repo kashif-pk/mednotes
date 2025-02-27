@@ -7,7 +7,7 @@ export const Hero = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="relative min-h-[80vh] w-full flex items-center justify-center bg-gradient-to-b from-background to-black/50">
+    <div className="relative min-h-[80vh] w-full flex items-center justify-center bg-gradient-to-b from-background to-black/50 pt-20">
       <motion.div
         initial={{ opacity: 0.5, y: 100 }}
         whileInView={{ opacity: 1, y: 0 }}
