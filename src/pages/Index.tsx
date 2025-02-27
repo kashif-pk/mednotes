@@ -30,7 +30,9 @@ const Index = () => {
       <Header />
       <main>
         <Hero />
-        <Features />
+        <section id="features">
+          <Features />
+        </section>
         <div className="container py-8 flex justify-center">
           {isAuthenticated ? (
             <NotesUpload />
@@ -45,10 +47,10 @@ const Index = () => {
         <HowItWorks />
         <Testimonials />
         <Contact />
-        <section className="py-16 bg-black/50">
+        <section id="about" className="py-16 bg-black/50">
           <div className="container max-w-4xl mx-auto px-4">
             <h2 className="text-4xl font-bold text-center mb-8 bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">About Us</h2>
-            <div className="glass rounded-lg p-8 space-y-6 animate-fade-in">
+            <div className="glass rounded-lg p-8 space-y-6">
               <p className="text-lg text-gray-300 leading-relaxed text-center">
                 We're passionate about making education accessible to everyone. Our platform connects students and professionals, creating a space where knowledge sharing becomes effortless and impactful.
               </p>

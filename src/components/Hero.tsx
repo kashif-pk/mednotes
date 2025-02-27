@@ -1,23 +1,13 @@
 
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
 
 export const Hero = () => {
   const navigate = useNavigate();
 
   return (
     <div className="relative min-h-[80vh] w-full flex items-center justify-center bg-gradient-to-b from-background to-black/50 pt-20">
-      <motion.div
-        initial={{ opacity: 0.5, y: 100 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{
-          delay: 0.3,
-          duration: 0.8,
-          ease: "easeInOut",
-        }}
-        className="max-w-5xl mx-auto text-center space-y-6 md:space-y-8 px-4"
-      >
+      <div className="max-w-5xl mx-auto text-center space-y-6 md:space-y-8 px-4">
         <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight">
           <span className="inline-block bg-gradient-to-r from-purple-400 via-pink-500 to-purple-600 text-transparent bg-clip-text bg-300% animate-gradient">
             Share Your Nursing Knowledge
@@ -39,7 +29,7 @@ export const Hero = () => {
             Browse Notes
           </Button>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 };
