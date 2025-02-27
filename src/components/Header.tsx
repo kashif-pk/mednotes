@@ -8,6 +8,7 @@ import { User } from "@supabase/supabase-js";
 import { useToast } from "./ui/use-toast";
 import { MobileNav } from "./MobileNav";
 import { cn } from "@/lib/utils";
+import { useLocation } from "react-router-dom";
 
 interface NavItem {
   title: string;
@@ -37,6 +38,7 @@ const navItems: NavItem[] = [
 export const Header = () => {
   const [user, setUser] = useState<User | null>(null);
   const { toast } = useToast();
+  const location = useLocation();
 
   useEffect(() => {
     // Get initial session
@@ -65,6 +67,12 @@ export const Header = () => {
   }, [toast]);
 
   const scrollToSection = (id: string) => {
+    // First check if we're on the homepage
+    if (location.pathname !== '/') {
+      window.location.href = `/#${id}`;
+      return;
+    }
+    
     const element = document.getElementById(id);
     if (element) {
       element.scrollIntoView({ behavior: "smooth" });
@@ -80,7 +88,7 @@ export const Header = () => {
           </Link>
         </div>
         <div className="flex md:hidden">
-          <MobileNav isAuthenticated={!!user} />
+          <MobileNav isAuthenticated={!!user} scrollToSection={scrollToSection} />
         </div>
         <div className="flex md:hidden ml-2">
           <Link to="/" className="font-bold text-xl">

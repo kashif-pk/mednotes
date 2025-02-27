@@ -2,7 +2,7 @@
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 interface NavItem {
@@ -13,6 +13,7 @@ interface NavItem {
 
 interface MobileNavProps {
   isAuthenticated: boolean;
+  scrollToSection: (id: string) => void;
 }
 
 const navItems: NavItem[] = [
@@ -39,7 +40,16 @@ const navItems: NavItem[] = [
   },
 ];
 
-export function MobileNav({ isAuthenticated }: MobileNavProps) {
+export function MobileNav({ isAuthenticated, scrollToSection }: MobileNavProps) {
+  const location = useLocation();
+
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (href.startsWith('/#')) {
+      e.preventDefault();
+      scrollToSection(href.substring(2));
+    }
+  };
+
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -56,6 +66,7 @@ export function MobileNav({ isAuthenticated }: MobileNavProps) {
               <Link
                 key={item.href}
                 to={item.href}
+                onClick={(e) => handleNavClick(e, item.href)}
                 className={cn(
                   "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                 )}
