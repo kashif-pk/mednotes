@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -44,6 +43,20 @@ const categories = [
   "Surgery",
   "Other",
 ];
+
+const getCategoryColor = (category: string) => {
+  const colorMap: Record<string, string> = {
+    "Anatomy": "bg-purple-600/20 text-purple-400 border-purple-600/30",
+    "Physiology": "bg-pink-600/20 text-pink-400 border-pink-600/30",
+    "Pathology": "bg-orange-600/20 text-orange-400 border-orange-600/30",
+    "Pharmacology": "bg-blue-600/20 text-blue-400 border-blue-600/30",
+    "Clinical Medicine": "bg-emerald-600/20 text-emerald-400 border-emerald-600/30",
+    "Surgery": "bg-red-600/20 text-red-400 border-red-600/30",
+    "Other": "bg-gray-600/20 text-gray-400 border-gray-600/30"
+  };
+  
+  return colorMap[category] || "bg-primary/10 text-primary border-primary/30";
+};
 
 const ITEMS_PER_PAGE = 9;
 
@@ -208,7 +221,7 @@ const Notes = () => {
                   <CardHeader>
                     <CardTitle className="flex items-start justify-between gap-2">
                       <span className="line-clamp-2">{note.title}</span>
-                      <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary whitespace-nowrap">
+                      <span className={`text-xs px-2 py-1 rounded-full border ${getCategoryColor(note.category)} whitespace-nowrap font-medium`}>
                         {note.category}
                       </span>
                     </CardTitle>
