@@ -1,5 +1,6 @@
+
 import { useEffect, useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,12 +17,14 @@ import {
   Loader2, 
   Trash2, 
   Eye,
-  Upload
+  Upload,
+  Users
 } from "lucide-react";
 
 const Profile = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { userId } = useParams();
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [notesLoading, setNotesLoading] = useState(true);
@@ -29,25 +32,44 @@ const Profile = () => {
   const [profile, setProfile] = useState<{
     full_name?: string;
     avatar_url?: string;
+    id?: string;
   }>({});
   const [userNotes, setUserNotes] = useState<any[]>([]);
   const [deletingNoteId, setDeletingNoteId] = useState<string | null>(null);
+  const [isCurrentUser, setIsCurrentUser] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const initializeProfile = async () => {
       try {
+        // Get the current logged-in user
         const { data: { session } } = await supabase.auth.getSession();
-        if (!session?.user) {
+        
+        if (!session?.user && !userId) {
           navigate("/auth");
           return;
         }
-        setUser(session.user);
         
+        // Determine if we're viewing the current user's profile or someone else's
+        const profileId = userId || session?.user.id;
+        
+        if (!profileId) {
+          navigate("/");
+          return;
+        }
+        
+        // Set if we're viewing the current user's profile
+        setIsCurrentUser(!userId || (session?.user.id === userId));
+        
+        if (isCurrentUser) {
+          setUser(session?.user || null);
+        }
+        
+        // Fetch the profile data for the requested user ID
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('*')
-          .eq('id', session.user.id)
+          .eq('id', profileId)
           .single();
           
         if (profileError) {
@@ -57,11 +79,17 @@ const Profile = () => {
             description: profileError.message,
             variant: "destructive",
           });
+          
+          // If the profile doesn't exist and it's not the current user, redirect
+          if (profileError.code === "PGRST116" && !isCurrentUser) {
+            navigate("/not-found");
+            return;
+          }
         } else if (profileData) {
           setProfile(profileData);
         }
         
-        await fetchUserNotes(session.user.id);
+        await fetchUserNotes(profileId);
       } catch (error: any) {
         console.error('Error in initializeProfile:', error);
         toast({
@@ -75,7 +103,7 @@ const Profile = () => {
     };
 
     initializeProfile();
-  }, [navigate, toast]);
+  }, [navigate, toast, userId]);
 
   const fetchUserNotes = async (userId: string) => {
     try {
@@ -290,6 +318,13 @@ const Profile = () => {
           Back to Home
         </Button>
 
+        {!isCurrentUser && (
+          <div className="mb-4 bg-purple-500/10 border border-purple-500/20 rounded-md p-3 text-purple-300 text-sm flex items-center">
+            <Users className="h-4 w-4 mr-2" />
+            You are viewing {profile.full_name || "another user"}'s profile
+          </div>
+        )}
+
         <div className="grid gap-4 sm:gap-6 md:gap-8 md:grid-cols-[280px_1fr]">
           <Card className="h-fit bg-card/50 backdrop-blur-sm border-border/50">
             <CardContent className="p-4 sm:p-6 text-center">
@@ -297,15 +332,17 @@ const Profile = () => {
                 <Avatar className="w-24 h-24 sm:w-32 sm:h-32 border-4 border-primary/20">
                   <AvatarImage src={profile.avatar_url || ""} />
                   <AvatarFallback className="text-2xl sm:text-4xl">
-                    {profile.full_name?.[0] || user?.email?.[0]}
+                    {profile.full_name?.[0] || profile.id?.[0]}
                   </AvatarFallback>
                 </Avatar>
-                <div 
-                  className="absolute inset-0 rounded-full bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
-                  onClick={handleUploadClick}
-                >
-                  <Camera className="w-6 h-6 sm:w-8 sm:h-8 text-white/80" />
-                </div>
+                {isCurrentUser && (
+                  <div 
+                    className="absolute inset-0 rounded-full bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
+                    onClick={handleUploadClick}
+                  >
+                    <Camera className="w-6 h-6 sm:w-8 sm:h-8 text-white/80" />
+                  </div>
+                )}
                 <input 
                   type="file"
                   ref={fileInputRef}
@@ -315,12 +352,14 @@ const Profile = () => {
                 />
               </div>
               <h3 className="text-base sm:text-xl font-semibold mb-2">
-                {profile.full_name || "Set your name"}
+                {profile.full_name || "No name set"}
               </h3>
-              <p className="text-muted-foreground text-xs sm:text-sm flex items-center justify-center gap-1 sm:gap-2">
-                <Mail className="w-3 h-3 sm:w-4 sm:h-4" />
-                {user?.email}
-              </p>
+              {user?.email && (
+                <p className="text-muted-foreground text-xs sm:text-sm flex items-center justify-center gap-1 sm:gap-2">
+                  <Mail className="w-3 h-3 sm:w-4 sm:h-4" />
+                  {user.email}
+                </p>
+              )}
               {uploading && (
                 <div className="mt-2 flex items-center justify-center gap-2 text-xs text-primary">
                   <Loader2 className="w-3 h-3 animate-spin" />
@@ -330,84 +369,101 @@ const Profile = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-card/50 backdrop-blur-sm border-border/50">
-            <CardHeader>
-              <CardTitle>Edit Profile</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4 sm:space-y-6">
-              <div className="space-y-2">
-                <label className="text-xs sm:text-sm font-medium flex items-center gap-1 sm:gap-2">
-                  <UserIcon className="w-3 h-3 sm:w-4 sm:h-4" />
-                  Full Name
-                </label>
-                <Input
-                  value={profile.full_name || ""}
-                  onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
-                  placeholder="Enter your full name"
-                  className="bg-background/50 h-8 sm:h-10 text-sm"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-xs sm:text-sm font-medium flex items-center gap-1 sm:gap-2">
-                  <Camera className="w-3 h-3 sm:w-4 sm:h-4" />
-                  Profile Picture
-                </label>
-                <div className="flex items-center gap-2">
+          {isCurrentUser && (
+            <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+              <CardHeader>
+                <CardTitle>Edit Profile</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4 sm:space-y-6">
+                <div className="space-y-2">
+                  <label className="text-xs sm:text-sm font-medium flex items-center gap-1 sm:gap-2">
+                    <UserIcon className="w-3 h-3 sm:w-4 sm:h-4" />
+                    Full Name
+                  </label>
                   <Input
-                    value={profile.avatar_url || ""}
-                    onChange={(e) => setProfile({ ...profile, avatar_url: e.target.value })}
-                    placeholder="Enter image URL"
-                    className="bg-background/50 h-8 sm:h-10 text-sm flex-1"
+                    value={profile.full_name || ""}
+                    onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
+                    placeholder="Enter your full name"
+                    className="bg-background/50 h-8 sm:h-10 text-sm"
                   />
-                  <Button 
-                    onClick={handleUploadClick}
-                    className="h-8 sm:h-10"
-                    variant="outline"
-                    disabled={uploading}
-                  >
-                    {uploading ? (
-                      <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
-                    ) : (
-                      <Upload className="h-3 w-3 sm:h-4 sm:w-4" />
-                    )}
-                  </Button>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Click on your avatar or the upload button to choose a profile picture
+
+                <div className="space-y-2">
+                  <label className="text-xs sm:text-sm font-medium flex items-center gap-1 sm:gap-2">
+                    <Camera className="w-3 h-3 sm:w-4 sm:h-4" />
+                    Profile Picture
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      value={profile.avatar_url || ""}
+                      onChange={(e) => setProfile({ ...profile, avatar_url: e.target.value })}
+                      placeholder="Enter image URL"
+                      className="bg-background/50 h-8 sm:h-10 text-sm flex-1"
+                    />
+                    <Button 
+                      onClick={handleUploadClick}
+                      className="h-8 sm:h-10"
+                      variant="outline"
+                      disabled={uploading}
+                    >
+                      {uploading ? (
+                        <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
+                      ) : (
+                        <Upload className="h-3 w-3 sm:h-4 sm:w-4" />
+                      )}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Click on your avatar or the upload button to choose a profile picture
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs sm:text-sm font-medium flex items-center gap-1 sm:gap-2">
+                    <Mail className="w-3 h-3 sm:w-4 sm:h-4" />
+                    Email
+                  </label>
+                  <Input
+                    value={user?.email || ""}
+                    disabled
+                    className="bg-background/50 text-muted-foreground h-8 sm:h-10 text-sm"
+                  />
+                </div>
+
+                <Button 
+                  onClick={updateProfile} 
+                  disabled={loading || uploading}
+                  className="w-full h-8 sm:h-10 text-sm bg-primary/90 hover:bg-primary"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : "Save Changes"}
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+          
+          {!isCurrentUser && (
+            <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+              <CardHeader>
+                <CardTitle>{profile.full_name || "User"}'s Profile</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm mb-4">
+                  This user has shared {userNotes.length} {userNotes.length === 1 ? 'note' : 'notes'} with the community
                 </p>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-xs sm:text-sm font-medium flex items-center gap-1 sm:gap-2">
-                  <Mail className="w-3 h-3 sm:w-4 sm:h-4" />
-                  Email
-                </label>
-                <Input
-                  value={user?.email || ""}
-                  disabled
-                  className="bg-background/50 text-muted-foreground h-8 sm:h-10 text-sm"
-                />
-              </div>
-
-              <Button 
-                onClick={updateProfile} 
-                disabled={loading || uploading}
-                className="w-full h-8 sm:h-10 text-sm bg-primary/90 hover:bg-primary"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
-                    Saving...
-                  </>
-                ) : "Save Changes"}
-              </Button>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         <div className="mt-6 sm:mt-8">
-          <h2 className="text-lg sm:text-2xl font-bold mb-4">Your Notes</h2>
+          <h2 className="text-lg sm:text-2xl font-bold mb-4">
+            {isCurrentUser ? "Your Notes" : `${profile.full_name || "User"}'s Notes`}
+          </h2>
           {notesLoading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-4 w-4 sm:h-6 sm:w-6 animate-spin" />
@@ -447,26 +503,28 @@ const Profile = () => {
                         <Download className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5" />
                         Download
                       </Button>
-                      <Button 
-                        variant="destructive" 
-                        size="sm"
-                        onClick={() => deleteNote(note.id)}
-                        disabled={deletingNoteId === note.id}
-                        className="h-8 sm:h-9"
-                      >
-                        {deletingNoteId === note.id ? (
-                          <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
-                        ) : (
-                          <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
-                        )}
-                      </Button>
+                      {isCurrentUser && (
+                        <Button 
+                          variant="destructive" 
+                          size="sm"
+                          onClick={() => deleteNote(note.id)}
+                          disabled={deletingNoteId === note.id}
+                          className="h-8 sm:h-9"
+                        >
+                          {deletingNoteId === note.id ? (
+                            <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
+                          )}
+                        </Button>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
               ))}
               {userNotes.length === 0 && (
                 <p className="text-muted-foreground col-span-2 text-center py-8 text-sm sm:text-base">
-                  You haven't uploaded any notes yet.
+                  {isCurrentUser ? "You haven't uploaded any notes yet." : "This user hasn't uploaded any notes yet."}
                 </p>
               )}
             </div>

@@ -7,11 +7,12 @@ import { Testimonials } from "@/components/Testimonials";
 import { FeaturedNotes } from "@/components/FeaturedNotes";
 import { Contact } from "@/components/Contact";
 import { NotesUpload } from "@/components/NotesUpload";
+import { UserList } from "@/components/UserList";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
-import { FilePlus2, Facebook, Twitter, Linkedin, Instagram, Youtube } from "lucide-react";
+import { FilePlus2, Facebook, Twitter, Linkedin, Instagram, Youtube, Users } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -44,6 +45,17 @@ const Index = () => {
           )}
         </div>
         <FeaturedNotes />
+        
+        <section className="py-16 bg-black/30">
+          <div className="container max-w-4xl mx-auto px-4">
+            <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 flex items-center justify-center gap-2">
+              <Users className="h-6 w-6 text-primary" />
+              <span>Community Members</span>
+            </h2>
+            <UserList />
+          </div>
+        </section>
+        
         <HowItWorks />
         <Testimonials />
         <Contact />
