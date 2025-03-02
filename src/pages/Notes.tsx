@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -45,7 +46,7 @@ const categories = [
 ];
 
 const getCategoryColor = () => {
-  return "bg-blue-600/20 text-blue-500 border-blue-600/30 font-medium";
+  return "bg-purple-500/25 text-purple-300 border-purple-500/40 font-semibold";
 };
 
 const ITEMS_PER_PAGE = 9;

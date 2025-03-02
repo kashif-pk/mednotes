@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,9 +19,9 @@ type Note = {
   };
 };
 
-// Common color for all categories
+// Eye-catching color with high contrast against the card background
 const getCategoryColor = () => {
-  return "bg-blue-600/20 text-blue-500 border-blue-600/30 font-medium";
+  return "bg-purple-500/25 text-purple-300 border-purple-500/40 font-semibold";
 };
 
 export const FeaturedNotes = () => {
