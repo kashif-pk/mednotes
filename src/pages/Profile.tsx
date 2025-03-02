@@ -1,5 +1,4 @@
-
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -16,13 +15,15 @@ import {
   Download, 
   Loader2, 
   Trash2, 
-  Eye 
+  Eye,
+  Upload
 } from "lucide-react";
 
 const Profile = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
   const [notesLoading, setNotesLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<{
@@ -31,6 +32,7 @@ const Profile = () => {
   }>({});
   const [userNotes, setUserNotes] = useState<any[]>([]);
   const [deletingNoteId, setDeletingNoteId] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const initializeProfile = async () => {
@@ -179,6 +181,92 @@ const Profile = () => {
     }
   };
 
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      const file = e.target.files?.[0];
+      if (!file || !user) return;
+
+      // Check if file is an image
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Invalid file type",
+          description: "Please upload an image file",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Check file size (max 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: "Image should be less than 2MB",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setUploading(true);
+      
+      // Create a unique file path
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${user.id}/${Date.now()}.${fileExt}`;
+      
+      // Upload the file to Supabase Storage
+      const { data, error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, {
+          upsert: true
+        });
+        
+      if (uploadError) {
+        throw uploadError;
+      }
+      
+      // Get the public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+        
+      // Update profile with new avatar URL
+      const updatedProfile = { ...profile, avatar_url: publicUrl };
+      setProfile(updatedProfile);
+      
+      // Update database
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('id', user.id);
+        
+      if (updateError) {
+        throw updateError;
+      }
+      
+      toast({
+        title: "Profile picture updated",
+        description: "Your profile picture has been updated successfully.",
+      });
+      
+    } catch (error: any) {
+      console.error('Error uploading avatar:', error);
+      toast({
+        title: "Error uploading image",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+      // Clear the file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-background to-black flex items-center justify-center">
@@ -212,9 +300,19 @@ const Profile = () => {
                     {profile.full_name?.[0] || user?.email?.[0]}
                   </AvatarFallback>
                 </Avatar>
-                <div className="absolute inset-0 rounded-full bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <div 
+                  className="absolute inset-0 rounded-full bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
+                  onClick={handleUploadClick}
+                >
                   <Camera className="w-6 h-6 sm:w-8 sm:h-8 text-white/80" />
                 </div>
+                <input 
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  className="hidden"
+                  accept="image/*"
+                />
               </div>
               <h3 className="text-base sm:text-xl font-semibold mb-2">
                 {profile.full_name || "Set your name"}
@@ -223,6 +321,12 @@ const Profile = () => {
                 <Mail className="w-3 h-3 sm:w-4 sm:h-4" />
                 {user?.email}
               </p>
+              {uploading && (
+                <div className="mt-2 flex items-center justify-center gap-2 text-xs text-primary">
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  Uploading...
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -247,14 +351,31 @@ const Profile = () => {
               <div className="space-y-2">
                 <label className="text-xs sm:text-sm font-medium flex items-center gap-1 sm:gap-2">
                   <Camera className="w-3 h-3 sm:w-4 sm:h-4" />
-                  Profile Picture URL
+                  Profile Picture
                 </label>
-                <Input
-                  value={profile.avatar_url || ""}
-                  onChange={(e) => setProfile({ ...profile, avatar_url: e.target.value })}
-                  placeholder="Enter image URL"
-                  className="bg-background/50 h-8 sm:h-10 text-sm"
-                />
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={profile.avatar_url || ""}
+                    onChange={(e) => setProfile({ ...profile, avatar_url: e.target.value })}
+                    placeholder="Enter image URL"
+                    className="bg-background/50 h-8 sm:h-10 text-sm flex-1"
+                  />
+                  <Button 
+                    onClick={handleUploadClick}
+                    className="h-8 sm:h-10"
+                    variant="outline"
+                    disabled={uploading}
+                  >
+                    {uploading ? (
+                      <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
+                    ) : (
+                      <Upload className="h-3 w-3 sm:h-4 sm:w-4" />
+                    )}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Click on your avatar or the upload button to choose a profile picture
+                </p>
               </div>
 
               <div className="space-y-2">
@@ -271,7 +392,7 @@ const Profile = () => {
 
               <Button 
                 onClick={updateProfile} 
-                disabled={loading}
+                disabled={loading || uploading}
                 className="w-full h-8 sm:h-10 text-sm bg-primary/90 hover:bg-primary"
               >
                 {loading ? (
