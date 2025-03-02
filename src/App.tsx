@@ -7,6 +7,7 @@ import Auth from "@/pages/Auth";
 import Profile from "@/pages/Profile";
 import Notes from "@/pages/Notes";
 import NotFound from "@/pages/NotFound";
+import SearchUsers from "@/pages/SearchUsers";
 import "./App.css";
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/profile/:userId" element={<Profile />} />
         <Route path="/notes" element={<Notes />} />
+        <Route path="/search-users" element={<SearchUsers />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Toaster />

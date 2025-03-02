@@ -1,4 +1,3 @@
-
 import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
 import { Features } from "@/components/Features";
@@ -12,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
-import { FilePlus2, Facebook, Twitter, Linkedin, Instagram, Youtube, Users } from "lucide-react";
+import { FilePlus2, Facebook, Twitter, Linkedin, Instagram, Youtube, Users, Search } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -48,10 +47,20 @@ const Index = () => {
         
         <section className="py-16 bg-black/30">
           <div className="container max-w-4xl mx-auto px-4">
-            <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 flex items-center justify-center gap-2">
-              <Users className="h-6 w-6 text-primary" />
-              <span>Community Members</span>
-            </h2>
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
+                <Users className="h-6 w-6 text-primary" />
+                <span>Community Members</span>
+              </h2>
+              <Button 
+                onClick={() => navigate("/search-users")}
+                variant="outline"
+                className="bg-primary/10 border-primary/20 hover:bg-primary/20"
+              >
+                <Search className="mr-2 h-4 w-4" />
+                Find Members
+              </Button>
+            </div>
             <UserList />
           </div>
         </section>
@@ -59,6 +68,7 @@ const Index = () => {
         <HowItWorks />
         <Testimonials />
         <Contact />
+        
         <section id="about" className="py-16 bg-black/50">
           <div className="container max-w-4xl mx-auto px-4">
             <h2 className="text-4xl font-bold text-center mb-8 bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">About Us</h2>
