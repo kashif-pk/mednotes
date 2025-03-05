@@ -42,8 +42,12 @@ const Profile = () => {
   useEffect(() => {
     const initializeProfile = async () => {
       try {
+        setLoading(true);
+        console.log("Initializing profile with userId:", userId);
+        
         // Get the current logged-in user
         const { data: { session } } = await supabase.auth.getSession();
+        console.log("Current session:", session);
         
         if (!session?.user && !userId) {
           navigate("/auth");
@@ -52,6 +56,7 @@ const Profile = () => {
         
         // Determine if we're viewing the current user's profile or someone else's
         const profileId = userId || session?.user.id;
+        console.log("Profile ID to fetch:", profileId);
         
         if (!profileId) {
           navigate("/");
@@ -59,10 +64,13 @@ const Profile = () => {
         }
         
         // Set if we're viewing the current user's profile
-        setIsCurrentUser(!userId || (session?.user.id === userId));
+        const currentUserViewing = !userId || (session?.user.id === userId);
+        setIsCurrentUser(currentUserViewing);
+        console.log("Is current user:", currentUserViewing);
         
-        if (isCurrentUser) {
-          setUser(session?.user || null);
+        if (currentUserViewing && session?.user) {
+          setUser(session.user);
+          console.log("Set current user:", session.user);
         }
         
         // Fetch the profile data for the requested user ID
@@ -81,11 +89,12 @@ const Profile = () => {
           });
           
           // If the profile doesn't exist and it's not the current user, redirect
-          if (profileError.code === "PGRST116" && !isCurrentUser) {
+          if (profileError.code === "PGRST116" && !currentUserViewing) {
             navigate("/not-found");
             return;
           }
         } else if (profileData) {
+          console.log("Fetched profile data:", profileData);
           setProfile(profileData);
         }
         
@@ -115,6 +124,7 @@ const Profile = () => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
+      console.log("Fetched user notes:", data);
       setUserNotes(data || []);
     } catch (error: any) {
       console.error("Error fetching user notes:", error);
@@ -133,6 +143,7 @@ const Profile = () => {
     
     setLoading(true);
     try {
+      console.log("Updating profile with data:", profile);
       const { error } = await supabase
         .from('profiles')
         .update({
@@ -148,6 +159,7 @@ const Profile = () => {
         description: "Your profile has been updated successfully.",
       });
     } catch (error: any) {
+      console.error("Error updating profile:", error);
       toast({
         title: "Error updating profile",
         description: error.message,
@@ -332,7 +344,7 @@ const Profile = () => {
                 <Avatar className="w-24 h-24 sm:w-32 sm:h-32 border-4 border-primary/20">
                   <AvatarImage src={profile.avatar_url || ""} />
                   <AvatarFallback className="text-2xl sm:text-4xl">
-                    {profile.full_name?.[0] || profile.id?.[0]}
+                    {profile.full_name?.[0] || (profile.id?.[0]?.toUpperCase() || "U")}
                   </AvatarFallback>
                 </Avatar>
                 {isCurrentUser && (
@@ -354,7 +366,7 @@ const Profile = () => {
               <h3 className="text-base sm:text-xl font-semibold mb-2">
                 {profile.full_name || "No name set"}
               </h3>
-              {user?.email && (
+              {user?.email && isCurrentUser && (
                 <p className="text-muted-foreground text-xs sm:text-sm flex items-center justify-center gap-1 sm:gap-2">
                   <Mail className="w-3 h-3 sm:w-4 sm:h-4" />
                   {user.email}
@@ -369,7 +381,7 @@ const Profile = () => {
             </CardContent>
           </Card>
 
-          {isCurrentUser && (
+          {isCurrentUser ? (
             <Card className="bg-card/50 backdrop-blur-sm border-border/50">
               <CardHeader>
                 <CardTitle>Edit Profile</CardTitle>
@@ -444,9 +456,7 @@ const Profile = () => {
                 </Button>
               </CardContent>
             </Card>
-          )}
-          
-          {!isCurrentUser && (
+          ) : (
             <Card className="bg-card/50 backdrop-blur-sm border-border/50">
               <CardHeader>
                 <CardTitle>{profile.full_name || "User"}'s Profile</CardTitle>
