@@ -19,11 +19,22 @@ export const Contact = () => {
     setLoading(true);
 
     try {
-      const { error } = await supabase
+      // First store in database
+      const { error: dbError } = await supabase
         .from("contact_messages")
         .insert([{ name, email, message }]);
 
-      if (error) throw error;
+      if (dbError) throw dbError;
+
+      // Then send email notification
+      const response = await supabase.functions.invoke("send-contact-email", {
+        body: { name, email, message },
+      });
+
+      if (response.error) {
+        console.error("Error sending email:", response.error);
+        // We'll still show success since the message was saved to the database
+      }
 
       toast({
         title: "Message sent successfully!",
