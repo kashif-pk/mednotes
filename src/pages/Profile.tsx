@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,7 +17,8 @@ import {
   Trash2, 
   Eye,
   Upload,
-  Users
+  Users,
+  LogOut
 } from "lucide-react";
 
 const Profile = () => {
@@ -45,7 +45,6 @@ const Profile = () => {
         setLoading(true);
         console.log("Initializing profile with userId:", userId);
         
-        // Get the current logged-in user
         const { data: { session } } = await supabase.auth.getSession();
         console.log("Current session:", session);
         
@@ -54,7 +53,6 @@ const Profile = () => {
           return;
         }
         
-        // Determine if we're viewing the current user's profile or someone else's
         const profileId = userId || session?.user.id;
         console.log("Profile ID to fetch:", profileId);
         
@@ -63,7 +61,6 @@ const Profile = () => {
           return;
         }
         
-        // Set if we're viewing the current user's profile
         const currentUserViewing = !userId || (session?.user.id === userId);
         setIsCurrentUser(currentUserViewing);
         console.log("Is current user:", currentUserViewing);
@@ -73,7 +70,6 @@ const Profile = () => {
           console.log("Set current user:", session.user);
         }
         
-        // Fetch the profile data for the requested user ID
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('*')
@@ -88,7 +84,6 @@ const Profile = () => {
             variant: "destructive",
           });
           
-          // If the profile doesn't exist and it's not the current user, redirect
           if (profileError.code === "PGRST116" && !currentUserViewing) {
             navigate("/not-found");
             return;
@@ -230,7 +225,6 @@ const Profile = () => {
       const file = e.target.files?.[0];
       if (!file || !user) return;
 
-      // Check if file is an image
       if (!file.type.startsWith('image/')) {
         toast({
           title: "Invalid file type",
@@ -240,7 +234,6 @@ const Profile = () => {
         return;
       }
 
-      // Check file size (max 2MB)
       if (file.size > 2 * 1024 * 1024) {
         toast({
           title: "File too large",
@@ -252,11 +245,9 @@ const Profile = () => {
 
       setUploading(true);
       
-      // Create a unique file path
       const fileExt = file.name.split('.').pop();
       const filePath = `${user.id}/${Date.now()}.${fileExt}`;
       
-      // Upload the file to Supabase Storage
       const { data, error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(filePath, file, {
@@ -267,16 +258,13 @@ const Profile = () => {
         throw uploadError;
       }
       
-      // Get the public URL
       const { data: { publicUrl } } = supabase.storage
         .from('avatars')
         .getPublicUrl(filePath);
         
-      // Update profile with new avatar URL
       const updatedProfile = { ...profile, avatar_url: publicUrl };
       setProfile(updatedProfile);
       
-      // Update database
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ avatar_url: publicUrl })
@@ -300,10 +288,31 @@ const Profile = () => {
       });
     } finally {
       setUploading(false);
-      // Clear the file input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      navigate("/");
+      toast({
+        title: "Logged out successfully",
+        description: "You have been logged out of your account.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error logging out",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -371,6 +380,17 @@ const Profile = () => {
                   <Mail className="w-3 h-3 sm:w-4 sm:h-4" />
                   {user.email}
                 </p>
+              )}
+              {isCurrentUser && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="mt-4 text-red-400 border-red-400/30 hover:bg-red-400/10 hover:text-red-300"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                  Logout
+                </Button>
               )}
               {uploading && (
                 <div className="mt-2 flex items-center justify-center gap-2 text-xs text-primary">

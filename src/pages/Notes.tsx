@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -206,43 +205,43 @@ const Notes = () => {
           <div className="text-center py-12">Loading notes...</div>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-12">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 lg:gap-6 pb-12">
               {filteredNotes.map((note) => (
-                <Card key={note.id} className="bg-card/50 backdrop-blur-sm">
-                  <CardHeader>
-                    <CardTitle className="flex items-start justify-between gap-2">
+                <Card key={note.id} className="bg-card/50 backdrop-blur-sm flex flex-col h-full">
+                  <CardHeader className="pb-2 sm:pb-3">
+                    <CardTitle className="flex items-start justify-between gap-2 text-base sm:text-lg">
                       <span className="line-clamp-2">{note.title}</span>
                       <span className={`text-xs px-2 py-1 rounded-full border ${getCategoryColor()} whitespace-nowrap`}>
                         {note.category}
                       </span>
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                  <CardContent className="flex-1 flex flex-col justify-between">
+                    <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 mb-4">
                       {note.description}
                     </p>
-                    <div className="space-y-4">
-                      <div className="flex items-center text-sm text-muted-foreground">
-                        <User className="w-4 h-4 mr-1" />
+                    <div className="space-y-3 sm:space-y-4">
+                      <div className="flex items-center text-xs sm:text-sm text-muted-foreground">
+                        <User className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                         <span>{note.profiles.full_name || "Anonymous"}</span>
                       </div>
                       <div className="flex gap-2">
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          className="flex-1"
+                          className="flex-1 h-8 text-xs sm:text-sm"
                           onClick={() => handleNoteAction(note, 'view')}
                         >
-                          <Eye className="w-4 h-4 mr-2" />
+                          <Eye className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                           View
                         </Button>
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          className="flex-1"
+                          className="flex-1 h-8 text-xs sm:text-sm"
                           onClick={() => handleNoteAction(note, 'download')}
                         >
-                          <Download className="w-4 h-4 mr-2" />
+                          <Download className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                           Download
                         </Button>
                       </div>
