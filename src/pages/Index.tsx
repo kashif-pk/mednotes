@@ -1,3 +1,4 @@
+
 import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
 import { Features } from "@/components/Features";
@@ -47,7 +48,7 @@ const Index = () => {
         
         <section className="py-16 bg-black/30">
           <div className="container max-w-4xl mx-auto px-4">
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
               <h2 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
                 <Users className="h-6 w-6 text-primary" />
                 <span>Community Members</span>
@@ -55,7 +56,7 @@ const Index = () => {
               <Button 
                 onClick={() => navigate("/search-users")}
                 variant="outline"
-                className="bg-primary/10 border-primary/20 hover:bg-primary/20"
+                className="w-full sm:w-auto bg-primary/10 border-primary/20 hover:bg-primary/20"
               >
                 <Search className="mr-2 h-4 w-4" />
                 Find Members
