@@ -132,24 +132,24 @@ export const FeaturedNotes = () => {
                   <User className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                   <span>{note.profiles.full_name || "Anonymous"}</span>
                 </div>
-                <div className="flex flex-col xs:flex-row gap-2">
+                <div className="grid grid-cols-2 gap-2">
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    className="flex-1 h-8 sm:h-9 text-xs sm:text-sm"
+                    className="w-full h-8 sm:h-9 text-xs sm:text-sm px-1 sm:px-2"
                     onClick={() => handleNoteAction(note, 'view')}
                   >
-                    <Eye className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5" />
-                    View
+                    <Eye className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" />
+                    <span className="whitespace-nowrap">View</span>
                   </Button>
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    className="flex-1 h-8 sm:h-9 text-xs sm:text-sm"
+                    className="w-full h-8 sm:h-9 text-xs sm:text-sm px-1 sm:px-2"
                     onClick={() => handleNoteAction(note, 'download')}
                   >
-                    <Download className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5" />
-                    Download
+                    <Download className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" />
+                    <span className="whitespace-nowrap">Download</span>
                   </Button>
                 </div>
               </div>
