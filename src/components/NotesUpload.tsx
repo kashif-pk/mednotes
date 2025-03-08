@@ -33,12 +33,22 @@ const categories = [
   "Other",
 ];
 
+const years = [
+  "1st Year",
+  "2nd Year",
+  "3rd Year", 
+  "4th Year",
+  "5th Year",
+  "6th Year",
+];
+
 export const NotesUpload = () => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
+  const [year, setYear] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -61,7 +71,7 @@ export const NotesUpload = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file || !title || !category) {
+    if (!file || !title || !category || !year) {
       toast({
         title: "Missing information",
         description: "Please fill in all required fields and select a file.",
@@ -121,6 +131,7 @@ export const NotesUpload = () => {
           title,
           description,
           category,
+          year,
           file_url: publicUrl,
           user_id: user.id,
           created_at: new Date().toISOString(),
@@ -157,6 +168,7 @@ export const NotesUpload = () => {
     setTitle("");
     setDescription("");
     setCategory("");
+    setYear("");
     setFile(null);
   };
 
@@ -193,6 +205,22 @@ export const NotesUpload = () => {
                 {categories.map((cat) => (
                   <SelectItem key={cat} value={cat}>
                     {cat}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Year</label>
+            <Select value={year} onValueChange={setYear} required>
+              <SelectTrigger>
+                <SelectValue placeholder="Select year" />
+              </SelectTrigger>
+              <SelectContent>
+                {years.map((yr) => (
+                  <SelectItem key={yr} value={yr}>
+                    {yr}
                   </SelectItem>
                 ))}
               </SelectContent>

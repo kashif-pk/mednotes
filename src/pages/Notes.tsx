@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Download, Eye, Search, User, Filter } from "lucide-react";
+import { Download, Eye, Search, User, Filter, Clock } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import {
   Pagination,
@@ -27,6 +27,7 @@ type Note = {
   title: string;
   description: string;
   category: string;
+  year: string;
   file_url: string;
   created_at: string;
   profiles: {
@@ -45,6 +46,16 @@ const categories = [
   "Other",
 ];
 
+const years = [
+  "All",
+  "1st Year",
+  "2nd Year",
+  "3rd Year", 
+  "4th Year",
+  "5th Year",
+  "6th Year",
+];
+
 const getCategoryColor = () => {
   return "bg-purple-500/25 text-purple-300 border-purple-500/40 font-semibold";
 };
@@ -56,13 +67,14 @@ const Notes = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedYear, setSelectedYear] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const { toast } = useToast();
 
   useEffect(() => {
     fetchNotes();
-  }, [selectedCategory, currentPage]);
+  }, [selectedCategory, selectedYear, currentPage]);
 
   const fetchNotes = async () => {
     try {
@@ -80,6 +92,10 @@ const Notes = () => {
 
       if (selectedCategory !== "All") {
         query = query.eq("category", selectedCategory);
+      }
+      
+      if (selectedYear !== "All") {
+        query = query.eq("year", selectedYear);
       }
 
       const { data, error, count } = await query;
@@ -136,6 +152,11 @@ const Notes = () => {
     setSelectedCategory(value);
     setCurrentPage(1); // Reset to first page when changing category
   };
+  
+  const handleYearChange = (value: string) => {
+    setSelectedYear(value);
+    setCurrentPage(1); // Reset to first page when changing year
+  };
 
   const filteredNotes = notes.filter((note) =>
     note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -183,22 +204,41 @@ const Notes = () => {
                 onChange={(e) => handleSearch(e.target.value)}
               />
             </div>
-            <Select
-              value={selectedCategory}
-              onValueChange={handleCategoryChange}
-            >
-              <SelectTrigger className="w-full md:w-48">
-                <Filter className="w-4 h-4 mr-2" />
-                <SelectValue placeholder="Category" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex gap-2 flex-1 md:flex-none">
+              <Select
+                value={selectedCategory}
+                onValueChange={handleCategoryChange}
+              >
+                <SelectTrigger className="w-full md:w-40">
+                  <Filter className="w-4 h-4 mr-2" />
+                  <SelectValue placeholder="Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              <Select
+                value={selectedYear}
+                onValueChange={handleYearChange}
+              >
+                <SelectTrigger className="w-full md:w-32">
+                  <Clock className="w-4 h-4 mr-2" />
+                  <SelectValue placeholder="Year" />
+                </SelectTrigger>
+                <SelectContent>
+                  {years.map((year) => (
+                    <SelectItem key={year} value={year}>
+                      {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
 
@@ -212,9 +252,16 @@ const Notes = () => {
                   <CardHeader>
                     <CardTitle className="flex items-start justify-between gap-2">
                       <span className="line-clamp-2 text-base sm:text-lg">{note.title}</span>
-                      <span className={`text-xs px-2 py-1 rounded-full border ${getCategoryColor()} whitespace-nowrap`}>
-                        {note.category}
-                      </span>
+                      <div className="flex flex-col gap-1 items-end">
+                        <span className={`text-xs px-2 py-1 rounded-full border ${getCategoryColor()} whitespace-nowrap`}>
+                          {note.category}
+                        </span>
+                        {note.year && (
+                          <span className="text-xs px-2 py-1 rounded-full border border-blue-500/40 bg-blue-500/25 text-blue-300 font-semibold whitespace-nowrap">
+                            {note.year}
+                          </span>
+                        )}
+                      </div>
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
