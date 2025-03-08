@@ -42,6 +42,7 @@ export type Database = {
           id: string
           title: string
           user_id: string
+          year: string
         }
         Insert: {
           category: string
@@ -51,6 +52,7 @@ export type Database = {
           id?: string
           title: string
           user_id: string
+          year: string
         }
         Update: {
           category?: string
@@ -60,6 +62,7 @@ export type Database = {
           id?: string
           title?: string
           user_id?: string
+          year?: string
         }
         Relationships: [
           {

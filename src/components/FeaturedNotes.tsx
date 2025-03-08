@@ -12,6 +12,7 @@ type Note = {
   title: string;
   description: string;
   category: string;
+  year: string;
   file_url: string;
   created_at: string;
   profiles: {
@@ -118,9 +119,16 @@ export const FeaturedNotes = () => {
             <CardHeader>
               <CardTitle className="flex items-start justify-between gap-2">
                 <span className="line-clamp-2 text-base sm:text-lg">{note.title}</span>
-                <span className={`text-xs px-2 py-1 rounded-full border ${getCategoryColor()} whitespace-nowrap`}>
-                  {note.category}
-                </span>
+                <div className="flex flex-col gap-1 items-end">
+                  <span className={`text-xs px-2 py-1 rounded-full border ${getCategoryColor()} whitespace-nowrap`}>
+                    {note.category}
+                  </span>
+                  {note.year && (
+                    <span className="text-xs px-2 py-1 rounded-full border border-blue-500/40 bg-blue-500/25 text-blue-300 font-semibold whitespace-nowrap">
+                      {note.year}
+                    </span>
+                  )}
+                </div>
               </CardTitle>
             </CardHeader>
             <CardContent>
