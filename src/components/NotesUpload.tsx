@@ -94,34 +94,40 @@ export const NotesUpload = () => {
         return;
       }
 
-      // Create a simple test upload first
+      // Create a unique filename
       const fileExt = file.name.split(".").pop();
       const fileName = `${crypto.randomUUID()}.${fileExt}`;
       
-      console.log("Attempting simple file upload:", {
+      console.log("Preparing file upload:", {
         fileName,
         fileType: file.type,
         fileSize: file.size,
-        bucket: "notes"
       });
 
-      // Try a direct upload first
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from("notes")
-        .upload(fileName, file);
-
-      if (uploadError) {
-        console.error("Upload error details:", uploadError);
-        throw new Error(`Upload failed: ${uploadError.message}`);
+      // Use a different approach for uploading
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const uploadUrl = `${supabase.supabaseUrl}/storage/v1/object/notes/${fileName}`;
+      
+      const uploadResponse = await fetch(uploadUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${supabase.auth.session()?.access_token}`,
+          'apikey': supabase.supabaseKey,
+        },
+        body: formData,
+      });
+      
+      if (!uploadResponse.ok) {
+        const errorData = await uploadResponse.json();
+        console.error("Upload error details:", errorData);
+        throw new Error(`Upload failed: ${errorData.message || uploadResponse.statusText}`);
       }
 
-      console.log("Upload succeeded:", uploadData);
-
-      // If upload succeeds, get the URL
-      const { data: { publicUrl } } = supabase.storage
-        .from("notes")
-        .getPublicUrl(fileName);
-
+      // Get the public URL
+      const publicUrl = `${supabase.supabaseUrl}/storage/v1/object/public/notes/${fileName}`;
+      
       console.log("Got public URL:", publicUrl);
 
       // Save metadata
@@ -140,7 +146,6 @@ export const NotesUpload = () => {
 
       if (dbError) {
         console.error("Database error:", dbError);
-        await supabase.storage.from("notes").remove([fileName]);
         throw new Error(`Database error: ${dbError.message}`);
       }
 
@@ -177,14 +182,14 @@ export const NotesUpload = () => {
       <DialogTrigger asChild>
         <Button>Upload Notes</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] max-h-[80vh] overflow-y-auto p-3">
         <DialogHeader className="pb-1">
-          <DialogTitle className="text-base">Upload Your Notes</DialogTitle>
+          <DialogTitle className="text-sm">Upload Your Notes</DialogTitle>
           <DialogDescription className="text-xs">
             Share your study materials with the community. Supported formats: PDF, DOC, DOCX.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-2">
+        <form onSubmit={handleSubmit} className="space-y-1.5">
           <div className="space-y-1">
             <label className="text-xs font-medium">Title</label>
             <Input
@@ -192,7 +197,7 @@ export const NotesUpload = () => {
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Enter note title"
               required
-              className="h-8 text-xs"
+              className="h-7 text-xs"
             />
           </div>
 
@@ -200,7 +205,7 @@ export const NotesUpload = () => {
             <div className="space-y-1">
               <label className="text-xs font-medium">Category</label>
               <Select value={category} onValueChange={setCategory} required>
-                <SelectTrigger className="h-8 text-xs">
+                <SelectTrigger className="h-7 text-xs">
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
@@ -216,7 +221,7 @@ export const NotesUpload = () => {
             <div className="space-y-1">
               <label className="text-xs font-medium">Year</label>
               <Select value={year} onValueChange={setYear} required>
-                <SelectTrigger className="h-8 text-xs">
+                <SelectTrigger className="h-7 text-xs">
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
@@ -236,7 +241,7 @@ export const NotesUpload = () => {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Enter note description"
-              className="resize-none h-12 min-h-0 text-xs"
+              className="resize-none h-10 min-h-0 text-xs"
             />
           </div>
 
@@ -247,7 +252,7 @@ export const NotesUpload = () => {
               onChange={handleFileUpload}
               accept=".pdf,.doc,.docx"
               required
-              className="h-8 text-xs"
+              className="h-7 text-xs"
             />
             {file && (
               <p className="text-xs text-muted-foreground mt-0.5">
