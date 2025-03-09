@@ -104,29 +104,20 @@ export const NotesUpload = () => {
         fileSize: file.size,
       });
 
-      // Use a different approach for uploading
-      const formData = new FormData();
-      formData.append('file', file);
-      
-      const uploadUrl = `${supabase.supabaseUrl}/storage/v1/object/notes/${fileName}`;
-      
-      const uploadResponse = await fetch(uploadUrl, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${supabase.auth.session()?.access_token}`,
-          'apikey': supabase.supabaseKey,
-        },
-        body: formData,
-      });
-      
-      if (!uploadResponse.ok) {
-        const errorData = await uploadResponse.json();
-        console.error("Upload error details:", errorData);
-        throw new Error(`Upload failed: ${errorData.message || uploadResponse.statusText}`);
+      // Upload file to Supabase Storage
+      const { data: storageData, error: storageError } = await supabase.storage
+        .from('notes')
+        .upload(fileName, file);
+
+      if (storageError) {
+        console.error("Storage error:", storageError);
+        throw new Error(`Storage error: ${storageError.message}`);
       }
 
       // Get the public URL
-      const publicUrl = `${supabase.supabaseUrl}/storage/v1/object/public/notes/${fileName}`;
+      const { data: { publicUrl } } = supabase.storage
+        .from('notes')
+        .getPublicUrl(fileName);
       
       console.log("Got public URL:", publicUrl);
 
