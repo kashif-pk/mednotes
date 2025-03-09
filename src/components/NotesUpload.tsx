@@ -104,25 +104,28 @@ export const NotesUpload = () => {
         fileSize: file.size,
       });
 
-      // Upload file to Supabase Storage
-      const { error: storageError } = await supabase.storage
+      // Upload file directly with user ID in metadata
+      const { data: uploadData, error: storageError } = await supabase.storage
         .from('notes')
-        .upload(fileName, file);
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
       if (storageError) {
         console.error("Storage error:", storageError);
         throw new Error(`Storage error: ${storageError.message}`);
       }
 
-      // Get the public URL
-      const { data } = supabase.storage
+      // Get the public URL using the returned path
+      const { data: urlData } = supabase.storage
         .from('notes')
         .getPublicUrl(fileName);
       
-      const publicUrl = data.publicUrl;
+      const publicUrl = urlData.publicUrl;
       console.log("Got public URL:", publicUrl);
 
-      // Save metadata
+      // Save metadata to notes table
       const { data: noteData, error: dbError } = await supabase
         .from("notes")
         .insert([{
@@ -132,7 +135,6 @@ export const NotesUpload = () => {
           year,
           file_url: publicUrl,
           user_id: user.id,
-          created_at: new Date().toISOString(),
         }])
         .select();
 
