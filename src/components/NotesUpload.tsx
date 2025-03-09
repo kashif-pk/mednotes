@@ -105,7 +105,7 @@ export const NotesUpload = () => {
       });
 
       // Upload file to Supabase Storage
-      const { data: storageData, error: storageError } = await supabase.storage
+      const { error: storageError } = await supabase.storage
         .from('notes')
         .upload(fileName, file);
 
@@ -115,9 +115,9 @@ export const NotesUpload = () => {
       }
 
       // Get the public URL
-      const { data: { publicUrl } } = supabase.storage
+      const publicUrl = supabase.storage
         .from('notes')
-        .getPublicUrl(fileName);
+        .getPublicUrl(fileName).data.publicUrl;
       
       console.log("Got public URL:", publicUrl);
 
