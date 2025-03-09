@@ -177,14 +177,14 @@ export const NotesUpload = () => {
       <DialogTrigger asChild>
         <Button>Upload Notes</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="pb-2">
-          <DialogTitle>Upload Your Notes</DialogTitle>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader className="pb-1">
+          <DialogTitle className="text-base">Upload Your Notes</DialogTitle>
           <DialogDescription className="text-xs">
             Share your study materials with the community. Supported formats: PDF, DOC, DOCX.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-3">
+        <form onSubmit={handleSubmit} className="space-y-2">
           <div className="space-y-1">
             <label className="text-xs font-medium">Title</label>
             <Input
@@ -192,7 +192,7 @@ export const NotesUpload = () => {
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Enter note title"
               required
-              className="h-8"
+              className="h-8 text-xs"
             />
           </div>
 
@@ -200,12 +200,12 @@ export const NotesUpload = () => {
             <div className="space-y-1">
               <label className="text-xs font-medium">Category</label>
               <Select value={category} onValueChange={setCategory} required>
-                <SelectTrigger className="h-8">
+                <SelectTrigger className="h-8 text-xs">
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
                   {categories.map((cat) => (
-                    <SelectItem key={cat} value={cat}>
+                    <SelectItem key={cat} value={cat} className="text-xs">
                       {cat}
                     </SelectItem>
                   ))}
@@ -216,12 +216,12 @@ export const NotesUpload = () => {
             <div className="space-y-1">
               <label className="text-xs font-medium">Year</label>
               <Select value={year} onValueChange={setYear} required>
-                <SelectTrigger className="h-8">
+                <SelectTrigger className="h-8 text-xs">
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
                   {years.map((yr) => (
-                    <SelectItem key={yr} value={yr}>
+                    <SelectItem key={yr} value={yr} className="text-xs">
                       {yr}
                     </SelectItem>
                   ))}
@@ -236,7 +236,7 @@ export const NotesUpload = () => {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Enter note description"
-              className="resize-none h-16 min-h-0"
+              className="resize-none h-12 min-h-0 text-xs"
             />
           </div>
 
@@ -250,7 +250,7 @@ export const NotesUpload = () => {
               className="h-8 text-xs"
             />
             {file && (
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-xs text-muted-foreground mt-0.5">
                 Selected: {file.name}
               </p>
             )}
