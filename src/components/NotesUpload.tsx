@@ -115,10 +115,11 @@ export const NotesUpload = () => {
       }
 
       // Get the public URL
-      const publicUrl = supabase.storage
+      const { data } = supabase.storage
         .from('notes')
-        .getPublicUrl(fileName).data.publicUrl;
+        .getPublicUrl(fileName);
       
+      const publicUrl = data.publicUrl;
       console.log("Got public URL:", publicUrl);
 
       // Save metadata
