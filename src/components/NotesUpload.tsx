@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -92,6 +93,7 @@ export const NotesUpload = () => {
         return;
       }
 
+      // Generate a unique filename
       const fileExt = file.name.split(".").pop();
       const fileName = `${crypto.randomUUID()}.${fileExt}`;
       
@@ -101,7 +103,8 @@ export const NotesUpload = () => {
         fileSize: file.size,
       });
 
-      const { error: uploadError } = await supabase.storage
+      // Simplified upload approach
+      const { data, error: uploadError } = await supabase.storage
         .from('notes')
         .upload(fileName, file);
 
@@ -110,20 +113,26 @@ export const NotesUpload = () => {
         throw new Error(`Upload failed: ${uploadError.message}`);
       }
 
+      if (!data || !data.path) {
+        throw new Error("Upload failed: No path returned");
+      }
+
+      // Get public URL only after successful upload
       const { data: { publicUrl } } = supabase.storage
         .from('notes')
-        .getPublicUrl(fileName);
+        .getPublicUrl(data.path);
 
+      // Save to database after successful upload
       const { error: dbError } = await supabase
         .from("notes")
-        .insert([{
+        .insert({
           title,
           description,
           category,
           year,
           file_url: publicUrl,
-          user_id: user.id,
-        }]);
+          user_id: user.id
+        });
 
       if (dbError) {
         console.error("Database error:", dbError);
@@ -132,7 +141,7 @@ export const NotesUpload = () => {
 
       toast({
         title: "Success!",
-        description: "Your notes have been uploaded successfully.",
+        description: "Your notes have been uploaded successfully."
       });
       setOpen(false);
       resetForm();
