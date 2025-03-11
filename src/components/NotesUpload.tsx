@@ -82,6 +82,7 @@ export const NotesUpload = () => {
 
     setLoading(true);
     try {
+      // Get current user
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       if (userError) {
         console.error("Auth error:", userError);
@@ -103,7 +104,7 @@ export const NotesUpload = () => {
         fileSize: file.size,
       });
 
-      // Simplified upload approach
+      // Upload file to storage
       const { data, error: uploadError } = await supabase.storage
         .from('notes')
         .upload(fileName, file);
@@ -117,12 +118,12 @@ export const NotesUpload = () => {
         throw new Error("Upload failed: No path returned");
       }
 
-      // Get public URL only after successful upload
+      // Get public URL for the uploaded file
       const { data: { publicUrl } } = supabase.storage
         .from('notes')
         .getPublicUrl(data.path);
 
-      // Save to database after successful upload
+      // Save metadata to database
       const { error: dbError } = await supabase
         .from("notes")
         .insert({
