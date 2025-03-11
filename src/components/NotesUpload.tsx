@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -82,7 +81,6 @@ export const NotesUpload = () => {
 
     setLoading(true);
     try {
-      // Get current user
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       if (userError) {
         console.error("Auth error:", userError);
@@ -94,7 +92,6 @@ export const NotesUpload = () => {
         return;
       }
 
-      // Create a unique filename
       const fileExt = file.name.split(".").pop();
       const fileName = `${crypto.randomUUID()}.${fileExt}`;
       
@@ -104,28 +101,20 @@ export const NotesUpload = () => {
         fileSize: file.size,
       });
 
-      // Use the supabase client directly for file upload instead of fetch
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('notes')
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: true
-        });
+        .upload(fileName, file);
 
       if (uploadError) {
         console.error("Upload error:", uploadError);
         throw new Error(`Upload failed: ${uploadError.message}`);
       }
-      
-      // Get public URL for file
+
       const { data: { publicUrl } } = supabase.storage
         .from('notes')
         .getPublicUrl(fileName);
-        
-      console.log("Got public URL:", publicUrl);
 
-      // Save metadata to notes table
-      const { data: noteData, error: dbError } = await supabase
+      const { error: dbError } = await supabase
         .from("notes")
         .insert([{
           title,
@@ -134,15 +123,12 @@ export const NotesUpload = () => {
           year,
           file_url: publicUrl,
           user_id: user.id,
-        }])
-        .select();
+        }]);
 
       if (dbError) {
         console.error("Database error:", dbError);
         throw new Error(`Database error: ${dbError.message}`);
       }
-
-      console.log("Note saved successfully:", noteData);
 
       toast({
         title: "Success!",
