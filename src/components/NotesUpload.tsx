@@ -104,32 +104,24 @@ export const NotesUpload = () => {
         fileSize: file.size,
       });
 
-      // Direct upload to public bucket bypassing owner ID 
-      // which is causing the subquery issue
-      const formData = new FormData();
-      formData.append('file', file);
-      
-      // Upload via direct URL to avoid RLS owner issues
-      const uploadResponse = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL || "https://woydvjzscfgnczwzlbxr.supabase.co"}/storage/v1/object/notes/${fileName}`, 
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndveWR2anpzY2ZnbmN6d3psYnhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzk3MTcxNTIsImV4cCI6MjA1NTI5MzE1Mn0.fldwSOvmeOTmAzguNUm8Q5drIwzcITUV3C-ddhUlG_Y"}`,
-            'Content-Type': 'multipart/form-data',
-          },
-          body: formData,
-        }
-      );
-      
-      if (!uploadResponse.ok) {
-        const errorData = await uploadResponse.json();
-        console.error("Upload failed:", errorData);
-        throw new Error(`Upload failed: ${errorData.error || uploadResponse.statusText}`);
+      // Use the supabase client directly for file upload instead of fetch
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('notes')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (uploadError) {
+        console.error("Upload error:", uploadError);
+        throw new Error(`Upload failed: ${uploadError.message}`);
       }
       
       // Get public URL for file
-      const publicUrl = `${import.meta.env.VITE_SUPABASE_URL || "https://woydvjzscfgnczwzlbxr.supabase.co"}/storage/v1/object/public/notes/${fileName}`;
+      const { data: { publicUrl } } = supabase.storage
+        .from('notes')
+        .getPublicUrl(fileName);
+        
       console.log("Got public URL:", publicUrl);
 
       // Save metadata to notes table
